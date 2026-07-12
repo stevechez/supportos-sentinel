@@ -5,15 +5,16 @@ interface DashboardHeaderProps {
 	description?: string;
 }
 
-export function DashboardHeader({ title, description }: DashboardHeaderProps) {
+export function DashboardHeader({
+	title = 'AI Operations Command Center',
+	description = 'Sentinel monitoring active systems',
+}: DashboardHeaderProps) {
 	return (
 		<header className="flex h-16 items-center justify-between border-b bg-background px-6 lg:px-8">
 			<div>
-				<p className="text-sm font-medium">AI Operations Command Center</p>
+				<p className="text-sm font-medium">{title}</p>
 
-				<p className="text-xs text-muted-foreground">
-					Sentinel monitoring active systems
-				</p>
+				<p className="text-xs text-muted-foreground">{description}</p>
 			</div>
 
 			<div className="flex items-center gap-3">

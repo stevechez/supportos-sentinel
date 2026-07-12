@@ -35,7 +35,9 @@ export function RecommendedActionsCard() {
 				<ListChecks className="h-5 w-5 text-primary" />
 
 				<div>
-					<h2 className="text-lg font-semibold">Recommended Actions</h2>
+					<h2 className="font-heading text-lg text-foreground">
+						Recommended Actions
+					</h2>
 
 					<p className="text-sm text-muted-foreground">
 						Prioritized improvements based on Sentinel findings
@@ -78,9 +80,9 @@ export function RecommendedActionsCard() {
 
 function PriorityBadge({ priority }: { priority: Recommendation['priority'] }) {
 	const styles = {
-		High: 'bg-red-500/10 text-red-600 border-red-500/20',
-		Medium: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20',
-		Low: 'bg-green-500/10 text-green-600 border-green-500/20',
+		High: 'bg-destructive/10 text-destructive border-destructive/20',
+		Medium: 'bg-amber-400/10 text-amber-400 border-amber-400/20',
+		Low: 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20',
 	};
 
 	return (

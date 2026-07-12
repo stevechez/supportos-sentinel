@@ -42,7 +42,9 @@ export async function signup(formData: FormData) {
 	// If email confirmation is required, there's no session yet — the
 	// workspace gets created the first time they actually log in.
 	if (!data.session) {
-		redirect('/signup?message=check-email');
+		redirect(
+			`/signup?message=check-email&email=${encodeURIComponent(email)}`,
+		);
 	}
 
 	const { error: workspaceError } = await supabase.rpc('create_workspace', {
@@ -81,4 +83,26 @@ export async function logout() {
 	const supabase = await createClient();
 	await supabase.auth.signOut();
 	redirect('/');
+}
+
+export async function resendConfirmation(formData: FormData) {
+	const email = String(formData.get('email') ?? '').trim();
+
+	if (!email) {
+		redirect('/signup?error=Missing+email');
+	}
+
+	const supabase = await createClient();
+
+	const { error } = await supabase.auth.resend({ type: 'signup', email });
+
+	if (error) {
+		redirect(
+			`/signup?message=check-email&email=${encodeURIComponent(email)}&error=${encodeURIComponent(error.message)}`,
+		);
+	}
+
+	redirect(
+		`/signup?message=check-email&email=${encodeURIComponent(email)}&resent=1`,
+	);
 }

@@ -5,7 +5,7 @@ import { Container } from '@/components/marketing/container';
 import { PageHeader } from '@/components/marketing/page-header';
 
 export const metadata = {
-	title: 'ChatWidget | Sentinel',
+	title: 'Connect | Sentinel',
 	description:
 		'Turn your website into a helpful first point of contact for customers.',
 };
@@ -36,7 +36,7 @@ export default function ChatbotPage() {
 		<section className="py-24 sm:py-32">
 			<Container>
 				<PageHeader
-					eyebrow="ChatWidget"
+					eyebrow="Connect"
 					title="Connect with customers, the moment they land."
 					description="A simple widget on your website that turns visitors' questions into conversations — and conversations into customers."
 				/>

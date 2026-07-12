@@ -18,7 +18,7 @@ import {
 const links = [
 	{ href: '/products', label: 'Solutions' },
 	{ href: '/pricing', label: 'Pricing' },
-	{ href: '/docs', label: 'Resources' },
+	{ href: '/resources', label: 'Resources' },
 ];
 
 export function MarketingNavbar() {

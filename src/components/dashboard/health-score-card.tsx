@@ -33,7 +33,7 @@ export function HealthScoreCard({
 
 					<div
 						className={`flex items-center gap-2 text-sm font-medium ${
-							isPositive ? 'text-green-600' : 'text-red-500'
+							isPositive ? 'text-emerald-400' : 'text-destructive'
 						}`}
 					>
 						{isPositive ? (

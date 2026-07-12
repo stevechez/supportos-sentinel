@@ -29,21 +29,21 @@ export function MarketingFooter() {
 								href="/products/chatbot"
 								className="block text-muted-foreground transition-colors hover:text-foreground"
 							>
-								ChatWidget
+								Connect
 							</Link>
 
 							<Link
 								href="/products/supportos"
 								className="block text-muted-foreground transition-colors hover:text-foreground"
 							>
-								SupportOS
+								Support
 							</Link>
 
 							<Link
 								href="/products/sentinel"
 								className="block text-muted-foreground transition-colors hover:text-foreground"
 							>
-								Sentinel
+								Insights
 							</Link>
 						</div>
 

@@ -37,10 +37,12 @@ export function CriticalFindingsCard() {
 		<div className="rounded-xl border bg-card shadow-sm">
 			<div className="flex items-center justify-between border-b px-6 py-4">
 				<div className="flex items-center gap-2">
-					<AlertTriangle className="h-5 w-5 text-red-500" />
+					<AlertTriangle className="h-5 w-5 text-destructive" />
 
 					<div>
-						<h2 className="text-lg font-semibold">Critical Findings</h2>
+						<h2 className="font-heading text-lg text-foreground">
+							Critical Findings
+						</h2>
 
 						<p className="text-sm text-muted-foreground">
 							Highest priority issues requiring attention
@@ -91,9 +93,9 @@ export function CriticalFindingsCard() {
 
 function SeverityBadge({ severity }: { severity: Finding['severity'] }) {
 	const styles = {
-		Critical: 'bg-red-500/10 text-red-600 border-red-500/20',
-		High: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
-		Medium: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20',
+		Critical: 'bg-destructive/10 text-destructive border-destructive/20',
+		High: 'bg-destructive/10 text-destructive border-destructive/20',
+		Medium: 'bg-amber-400/10 text-amber-400 border-amber-400/20',
 	};
 
 	return (

@@ -13,21 +13,21 @@ const capabilities = [
 	{
 		icon: MessageCircle,
 		title: 'Connect with customers',
-		product: 'ChatWidget',
+		product: 'Connect',
 		description:
 			'Turn your website into a helpful first point of contact where customers can ask questions and get answers, any time of day.',
 	},
 	{
 		icon: Headphones,
 		title: 'Support your team',
-		product: 'SupportOS',
+		product: 'Support',
 		description:
 			'Keep customer conversations organized in one place so your team can respond quickly, stay informed, and never lose track of a request.',
 	},
 	{
 		icon: BarChart3,
 		title: 'Understand your business',
-		product: 'Business Intelligence',
+		product: 'Insights',
 		description:
 			'See what customers need, what is happening across your business, and where things can improve — without digging through reports.',
 	},

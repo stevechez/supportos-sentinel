@@ -13,7 +13,7 @@ export const metadata = {
 const products = [
 	{
 		icon: MessageCircle,
-		title: 'ChatWidget',
+		title: 'Connect',
 		href: '/products/chatbot',
 		tagline: 'Connect with customers',
 		description:
@@ -21,7 +21,7 @@ const products = [
 	},
 	{
 		icon: Headphones,
-		title: 'SupportOS',
+		title: 'Support',
 		href: '/products/supportos',
 		tagline: 'Support your team',
 		description:
@@ -29,7 +29,7 @@ const products = [
 	},
 	{
 		icon: BarChart3,
-		title: 'Sentinel',
+		title: 'Insights',
 		href: '/products/sentinel',
 		tagline: 'Understand your business',
 		description:

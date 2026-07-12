@@ -13,7 +13,9 @@ export function ExecutiveSummaryCard({
 				<div className="flex items-center gap-2">
 					<Sparkles className="h-5 w-5 text-primary" />
 
-					<h2 className="text-lg font-semibold">Executive Summary</h2>
+					<h2 className="font-heading text-lg text-foreground">
+						Executive Summary
+					</h2>
 				</div>
 
 				<p className="mt-1 text-sm text-muted-foreground">

@@ -1,4 +1,3 @@
-import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 import { DashboardHeader } from '@/components/dashboard/header';
 import { HealthScoreCard } from '@/components/dashboard/health-score-card';
 import { MetricCard } from '@/components/dashboard/metric-card';
@@ -10,13 +9,13 @@ import { Activity, AlertTriangle, BookOpen, ClipboardList } from 'lucide-react';
 
 export default function DashboardPage() {
 	return (
-		<DashboardShell>
+		<>
 			<DashboardHeader
 				title="Executive Health"
 				description="Daily operational intelligence across your customer support ecosystem."
 			/>
 
-			<div className="space-y-8">
+			<div className="space-y-8 px-6 py-8 lg:px-8">
 				{/* Top Row */}
 				<HealthScoreCard />
 
@@ -63,6 +62,6 @@ export default function DashboardPage() {
 				{/* Bottom Row */}
 				<RecommendedActionsCard />
 			</div>
-		</DashboardShell>
+		</>
 	);
 }

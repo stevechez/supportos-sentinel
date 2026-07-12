@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { Container } from '@/components/marketing/container';
 import { SubmitButton } from '@/components/marketing/submit-button';
-import { signup } from '@/lib/actions/auth';
+import { signup, resendConfirmation } from '@/lib/actions/auth';
 
 export const metadata = {
 	title: 'Get Started | Sentinel',
@@ -12,9 +12,14 @@ export const metadata = {
 export default async function SignupPage({
 	searchParams,
 }: {
-	searchParams: Promise<{ error?: string; message?: string }>;
+	searchParams: Promise<{
+		error?: string;
+		message?: string;
+		email?: string;
+		resent?: string;
+	}>;
 }) {
-	const { error, message } = await searchParams;
+	const { error, message, email, resent } = await searchParams;
 
 	if (message === 'check-email') {
 		return (
@@ -26,9 +31,38 @@ export default async function SignupPage({
 						</h1>
 
 						<p className="mt-4 text-sm leading-6 text-muted-foreground">
-							We sent you a confirmation link. Once you confirm your address,
-							log in to finish setting up your workspace.
+							We sent a confirmation link{email ? <> to <span className="text-foreground/90">{email}</span></> : null}. Once
+							you confirm your address, log in to finish setting up your
+							workspace.
 						</p>
+
+						{resent ? (
+							<p className="mt-4 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-sm text-emerald-400">
+								Confirmation email resent.
+							</p>
+						) : null}
+
+						{error ? (
+							<p className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+								{error}
+							</p>
+						) : null}
+
+						<p className="mt-6 text-xs text-muted-foreground">
+							Didn&apos;t get it? Check spam, or resend below.
+						</p>
+
+						{email ? (
+							<form action={resendConfirmation} className="mt-3">
+								<input type="hidden" name="email" value={email} />
+								<button
+									type="submit"
+									className="text-sm font-medium text-brand hover:underline"
+								>
+									Resend confirmation email
+								</button>
+							</form>
+						) : null}
 
 						<Link
 							href="/login"

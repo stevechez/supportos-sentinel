@@ -2,6 +2,7 @@ import {
 	LayoutDashboard,
 	FileText,
 	AlertTriangle,
+	ClipboardList,
 	BookOpen,
 	Users,
 	Settings,
@@ -10,13 +11,8 @@ import {
 export const navigation = [
 	{
 		name: 'Overview',
-		href: '/',
+		href: '/dashboard',
 		icon: LayoutDashboard,
-	},
-	{
-		name: 'Reports',
-		href: '/reports',
-		icon: FileText,
 	},
 	{
 		name: 'Findings',
@@ -24,18 +20,28 @@ export const navigation = [
 		icon: AlertTriangle,
 	},
 	{
+		name: 'Recommendations',
+		href: '/recommendations',
+		icon: ClipboardList,
+	},
+	{
+		name: 'Reports',
+		href: '/reports',
+		icon: FileText,
+	},
+	{
 		name: 'Knowledge Gaps',
-		href: '/knowledge-gaps',
+		href: '/dashboard/knowledge-gaps',
 		icon: BookOpen,
 	},
 	{
-		name: 'Agent Intelligence',
-		href: '/agents',
+		name: 'Intelligence',
+		href: '/dashboard/intelligence',
 		icon: Users,
 	},
 	{
 		name: 'Settings',
-		href: '/settings',
+		href: '/dashboard/settings',
 		icon: Settings,
 	},
 ];
