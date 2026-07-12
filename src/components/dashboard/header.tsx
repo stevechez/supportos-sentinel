@@ -1,6 +1,11 @@
 import { Bell, Search } from 'lucide-react';
 
-export function DashboardHeader() {
+interface DashboardHeaderProps {
+	title?: string;
+	description?: string;
+}
+
+export function DashboardHeader({ title, description }: DashboardHeaderProps) {
 	return (
 		<header className="flex h-16 items-center justify-between border-b bg-background px-6 lg:px-8">
 			<div>
