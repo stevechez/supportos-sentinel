@@ -1,0 +1,12 @@
+{
+	"name": "@supportos/database",
+	"version": "0.1.0",
+	"private": true,
+	"exports": {
+		".": "./src/index.ts",
+		"./types": "./types/database.ts"
+	},
+	"dependencies": {
+		"@supabase/supabase-js": "^2.0.0"
+	}
+}
