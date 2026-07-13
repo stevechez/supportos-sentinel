@@ -15,7 +15,11 @@
 
 # next.js
 /.next/
+.next.stale*/
 /out/
+
+# stray temp files (sandbox/tooling artifacts)
+_tmp_*
 
 # production
 /build
