@@ -1,0 +1,17 @@
+{
+	"name": "@supportos/auth",
+	"version": "0.1.0",
+	"private": true,
+	"exports": {
+		"./server": "./supabase/server.ts",
+		"./client": "./supabase/client.ts",
+		"./admin": "./supabase/admin.ts",
+		"./middleware": "./supabase/middleware.ts",
+		"./actions": "./actions/auth.ts"
+	},
+	"dependencies": {
+		"@supabase/ssr": "^0.12.0",
+		"@supabase/supabase-js": "^2.110.2",
+		"@supportos/database": "workspace:*"
+	}
+}

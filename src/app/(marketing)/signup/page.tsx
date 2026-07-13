@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { Container } from '@/components/marketing/container';
 import { SubmitButton } from '@/components/marketing/submit-button';
-import { signup, resendConfirmation } from '@/lib/actions/auth';
+import { signup, resendConfirmation } from '@supportos/auth/actions';
 
 export const metadata = {
 	title: 'Get Started | Sentinel',

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 
 import { getStripe } from '@/lib/stripe';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient } from '@supportos/auth/admin';
 
 // Stripe requires the raw request body to verify the webhook signature, so
 // this route can't use the default JSON body parsing.

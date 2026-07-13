@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-import type { Database } from '@/types/database';
+import type { Database } from '@supportos/database/types';
 
 // Supabase client for use in Server Components, Server Actions, and Route
 // Handlers. Reads/writes the auth session via Next.js cookies.

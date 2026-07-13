@@ -1,6 +1,6 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
-import type { Database } from '@/types/database';
+import type { Database } from '@supportos/database/types';
 
 /**
  * Service-role Supabase client that bypasses Row Level Security. Only use
