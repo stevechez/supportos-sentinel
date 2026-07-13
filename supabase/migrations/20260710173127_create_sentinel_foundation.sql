@@ -1,8 +1,7 @@
-create extension if not exists "uuid-ossp";
-
+create extension if not exists "pgcrypto";
 
 create table sentinel_findings (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
 
   title text not null,
 
@@ -25,7 +24,7 @@ create table sentinel_findings (
 
 
 create table sentinel_recommendations (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
 
   finding_id uuid references sentinel_findings(id)
     on delete cascade,
@@ -43,7 +42,7 @@ create table sentinel_recommendations (
 
 
 create table sentinel_reports (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
 
   title text not null,
 
@@ -60,7 +59,7 @@ create table sentinel_reports (
 
 
 create table sentinel_knowledge_gaps (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
 
   question text not null,
 
