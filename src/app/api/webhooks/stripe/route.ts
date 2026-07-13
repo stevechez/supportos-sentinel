@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 
-import { getStripe } from '@/lib/stripe';
+import { getStripe } from '@supportos/billing/stripe';
 import { createAdminClient } from '@supportos/auth/admin';
 
 // Stripe requires the raw request body to verify the webhook signature, so

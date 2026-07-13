@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import { Menu } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@supportos/ui/components/button';
 import {
 	Sheet,
 	SheetContent,
 	SheetHeader,
 	SheetTitle,
 	SheetTrigger,
-} from '@/components/ui/sheet';
+} from '@supportos/ui/components/sheet';
 import { SidebarNav } from './sidebar-nav';
 
 export function MobileSidebar() {

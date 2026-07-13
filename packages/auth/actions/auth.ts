@@ -4,10 +4,7 @@ import { redirect } from 'next/navigation';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { createClient } from '../supabase/server';
-// Billing hasn't been extracted into packages/billing yet (that's Phase 2),
-// so this reaches back into the app's src/lib for now. Update this import
-// once packages/billing exists.
-import { getStripe } from '../../../src/lib/stripe';
+import { getStripe } from '@supportos/billing/stripe';
 import type { Database } from '@supportos/database/types';
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';

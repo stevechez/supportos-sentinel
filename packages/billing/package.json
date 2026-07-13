@@ -1,0 +1,11 @@
+{
+	"name": "@supportos/billing",
+	"version": "0.1.0",
+	"private": true,
+	"exports": {
+		"./stripe": "./src/stripe.ts"
+	},
+	"dependencies": {
+		"stripe": "^22.3.1"
+	}
+}

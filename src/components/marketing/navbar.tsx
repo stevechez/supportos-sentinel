@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Menu } from 'lucide-react';
 
 import { Container } from './container';
-import { Button } from '@/components/ui/button';
+import { Button } from '@supportos/ui/components/button';
 import {
 	Sheet,
 	SheetContent,
@@ -13,7 +13,7 @@ import {
 	SheetTitle,
 	SheetTrigger,
 	SheetClose,
-} from '@/components/ui/sheet';
+} from '@supportos/ui/components/sheet';
 
 const links = [
 	{ href: '/products', label: 'Solutions' },

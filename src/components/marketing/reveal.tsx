@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@supportos/ui/utils';
 
 interface RevealProps {
 	children: React.ReactNode;

@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { DM_Serif_Display, Manrope } from 'next/font/google';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@supportos/ui/utils';
 import './globals.css';
 
 // Loaded globally so marketing and dashboard share one design system.
