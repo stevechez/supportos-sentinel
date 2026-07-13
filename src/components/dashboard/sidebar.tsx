@@ -1,14 +1,6 @@
-'use client';
-
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-
-import { cn } from '@/lib/utils';
-import { navigation } from '@/lib/navigation';
+import { SidebarNav } from './sidebar-nav';
 
 export function Sidebar() {
-	const pathname = usePathname();
-
 	return (
 		<aside className="hidden w-72 border-r bg-card lg:flex lg:flex-col">
 			<div className="flex h-16 items-center border-b px-6">
@@ -23,32 +15,7 @@ export function Sidebar() {
 				</div>
 			</div>
 
-			<nav className="flex-1 space-y-1 p-4">
-				{navigation.map(item => {
-					const Icon = item.icon;
-					const isActive =
-						item.href === '/'
-							? pathname === '/'
-							: pathname.startsWith(item.href);
-
-					return (
-						<Link
-							key={item.name}
-							href={item.href}
-							className={cn(
-								'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition',
-								isActive
-									? 'bg-brand/10 font-medium text-brand'
-									: 'text-muted-foreground hover:bg-muted hover:text-foreground',
-							)}
-						>
-							<Icon className="h-4 w-4" />
-
-							{item.name}
-						</Link>
-					);
-				})}
-			</nav>
+			<SidebarNav />
 
 			<div className="border-t p-4">
 				<div className="rounded-lg bg-muted p-3">

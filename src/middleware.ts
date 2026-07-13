@@ -13,7 +13,8 @@ export const config = {
 		 * - _next/static, _next/image (static assets)
 		 * - favicon.ico
 		 * - image files
+		 * - api routes (webhooks etc. don't carry a browser session)
 		 */
-		'/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+		'/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
 	],
 };

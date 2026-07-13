@@ -1,6 +1,7 @@
 import { Globe, MessageSquare, Users, Sparkles } from 'lucide-react';
 
 import { Container } from './container';
+import { Reveal } from './reveal';
 
 const steps = [
 	{
@@ -32,7 +33,7 @@ export function BusinessFlowSection() {
 	return (
 		<section id="how-it-works" className="py-24 sm:py-32">
 			<Container>
-				<div className="mx-auto max-w-2xl text-center">
+				<Reveal className="mx-auto max-w-2xl text-center">
 					<h2 className="font-heading text-3xl text-foreground sm:text-4xl">
 						Everything works together.
 					</h2>
@@ -41,33 +42,32 @@ export function BusinessFlowSection() {
 						Sentinel connects the moments that matter — from the first customer
 						question to ongoing support and business insight.
 					</p>
-				</div>
+				</Reveal>
 
 				<div className="mt-16 grid gap-4 md:grid-cols-4">
 					{steps.map((step, index) => {
 						const Icon = step.icon;
 
 						return (
-							<div
-								key={step.title}
-								className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 transition-colors hover:bg-white/[0.04]"
-							>
-								<div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand/10">
-									<Icon className="h-5 w-5 text-brand" />
+							<Reveal key={step.title} delay={index * 80}>
+								<div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 transition-colors hover:bg-white/[0.04]">
+									<div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-brand/10">
+										<Icon className="h-5 w-5 text-brand" aria-hidden="true" />
+									</div>
+
+									<div className="mb-2 text-xs font-medium tracking-wide text-muted-foreground">
+										Step {index + 1}
+									</div>
+
+									<h3 className="text-base font-medium text-foreground">
+										{step.title}
+									</h3>
+
+									<p className="mt-3 text-sm leading-6 text-muted-foreground">
+										{step.description}
+									</p>
 								</div>
-
-								<div className="mb-2 text-xs font-medium tracking-wide text-muted-foreground">
-									Step {index + 1}
-								</div>
-
-								<h3 className="text-base font-medium text-foreground">
-									{step.title}
-								</h3>
-
-								<p className="mt-3 text-sm leading-6 text-muted-foreground">
-									{step.description}
-								</p>
-							</div>
+							</Reveal>
 						);
 					})}
 				</div>

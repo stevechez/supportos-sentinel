@@ -15,7 +15,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
 				<Sidebar />
 
 				<div className="flex min-h-screen flex-1 flex-col">
-					<main className="flex flex-1 flex-col">{children}</main>
+					<main id="main-content" className="flex flex-1 flex-col">
+						{children}
+					</main>
 				</div>
 			</div>
 		</div>

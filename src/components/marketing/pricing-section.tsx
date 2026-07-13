@@ -2,6 +2,7 @@ import { Check } from 'lucide-react';
 import Link from 'next/link';
 
 import { Container } from './container';
+import { Reveal } from './reveal';
 
 const features = [
 	'One connected system',
@@ -13,7 +14,7 @@ export function PricingSection() {
 	return (
 		<section className="py-24 sm:py-32">
 			<Container>
-				<div className="mx-auto max-w-2xl text-center">
+				<Reveal className="mx-auto max-w-2xl text-center">
 					<h2 className="font-heading text-3xl text-foreground sm:text-4xl">
 						One simple platform.
 					</h2>
@@ -22,9 +23,9 @@ export function PricingSection() {
 						Everything you need to connect with customers, support your team,
 						and keep your business moving.
 					</p>
-				</div>
+				</Reveal>
 
-				<div className="relative mx-auto mt-16 max-w-md">
+				<Reveal delay={100} className="relative mx-auto mt-16 max-w-md">
 					<div
 						aria-hidden
 						className="pointer-events-none absolute inset-0 -z-10 rounded-3xl bg-brand/10 blur-2xl"
@@ -54,7 +55,7 @@ export function PricingSection() {
 						<ul className="mt-6 space-y-3">
 							{features.map(feature => (
 								<li key={feature} className="flex items-center gap-3">
-									<Check className="h-4 w-4 text-brand" />
+									<Check className="h-4 w-4 text-brand" aria-hidden="true" />
 
 									<span className="text-sm text-foreground/90">{feature}</span>
 								</li>
@@ -72,7 +73,7 @@ export function PricingSection() {
 							Get Started
 						</Link>
 					</div>
-				</div>
+				</Reveal>
 			</Container>
 		</section>
 	);

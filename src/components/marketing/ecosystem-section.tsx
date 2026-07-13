@@ -1,6 +1,7 @@
 import { MessageCircle, Headphones, BarChart3 } from 'lucide-react';
 
 import { Container } from './container';
+import { Reveal } from './reveal';
 
 const capabilities = [
 	{
@@ -30,7 +31,7 @@ export function EcosystemSection() {
 	return (
 		<section className="border-y border-white/10 bg-white/[0.015] py-24 sm:py-32">
 			<Container>
-				<div className="mx-auto max-w-2xl text-center">
+				<Reveal className="mx-auto max-w-2xl text-center">
 					<h2 className="font-heading text-3xl text-foreground sm:text-4xl">
 						One platform.
 						<br />
@@ -41,44 +42,43 @@ export function EcosystemSection() {
 						Sentinel brings customer conversations, support, and business
 						insights together in one simple experience.
 					</p>
-				</div>
+				</Reveal>
 
 				<div className="mt-16 grid gap-6 md:grid-cols-3">
-					{capabilities.map(item => {
+					{capabilities.map((item, index) => {
 						const Icon = item.icon;
 
 						return (
-							<div
-								key={item.product}
-								className="rounded-2xl border border-white/10 bg-card p-8 transition-colors hover:border-white/20"
-							>
-								<div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand/10">
-									<Icon className="h-5 w-5 text-brand" />
+							<Reveal key={item.product} delay={index * 80}>
+								<div className="rounded-2xl border border-white/10 bg-card p-8 transition-colors hover:border-white/20">
+									<div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand/10">
+										<Icon className="h-5 w-5 text-brand" aria-hidden="true" />
+									</div>
+
+									<h3 className="mt-6 text-lg font-medium text-foreground">
+										{item.title}
+									</h3>
+
+									<p className="mt-2 text-sm font-medium text-brand">
+										{item.product}
+									</p>
+
+									<p className="mt-4 text-sm leading-7 text-muted-foreground">
+										{item.description}
+									</p>
 								</div>
-
-								<h3 className="mt-6 text-lg font-medium text-foreground">
-									{item.title}
-								</h3>
-
-								<p className="mt-2 text-sm font-medium text-brand">
-									{item.product}
-								</p>
-
-								<p className="mt-4 text-sm leading-7 text-muted-foreground">
-									{item.description}
-								</p>
-							</div>
+							</Reveal>
 						);
 					})}
 				</div>
 
-				<div className="mt-16 text-center">
+				<Reveal className="mt-16 text-center">
 					<p className="text-lg font-medium text-foreground/90">
 						Not three separate tools.
 						<br />
 						One connected system.
 					</p>
-				</div>
+				</Reveal>
 			</Container>
 		</section>
 	);

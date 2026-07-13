@@ -52,15 +52,12 @@
 
 :root {
   /*
-   * Default fallback stack for routes outside the marketing route group
-   * (e.g. the dashboard), which doesn't load the Manrope/DM Serif Display
-   * next/font variables. Without this, `font-sans`/`font-heading` resolve
-   * to an unset CSS variable and the browser falls back to a serif font.
+   * next/font's DM_Serif_Display/Manrope variable classes are applied
+   * directly on <html> in the root layout, so --font-sans/--font-heading
+   * are always defined at runtime. No fallback declared here — a fallback
+   * on :root would win the cascade over the font class (same specificity,
+   * later source order) and silently override the real fonts everywhere.
    */
-  --font-sans:
-    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica,
-    Arial, sans-serif;
-  --font-heading: var(--font-sans);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);

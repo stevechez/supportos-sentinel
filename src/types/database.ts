@@ -1019,6 +1019,9 @@ export type Database = {
           logo_url: string | null
           name: string
           slug: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string | null
         }
         Insert: {
           created_at?: string
@@ -1026,6 +1029,9 @@ export type Database = {
           logo_url?: string | null
           name: string
           slug: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
         }
         Update: {
           created_at?: string
@@ -1033,6 +1039,9 @@ export type Database = {
           logo_url?: string | null
           name?: string
           slug?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
         }
         Relationships: []
       }
@@ -1299,6 +1308,12 @@ export type Database = {
           type: string
           updated_at: string
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       create_workspace: {
         Args: { p_name: string; p_slug: string }
@@ -1363,12 +1378,12 @@ export type Database = {
           similarity: number
         }[]
       }
-      rate_limit_gc: { Args: Record<PropertyKey, never>; Returns: undefined }
+      rate_limit_gc: { Args: never; Returns: undefined }
       rate_limit_hit: {
         Args: { p_bucket: string; p_window_seconds: number }
         Returns: number
       }
-      redeem_invitation: { Args: Record<PropertyKey, never>; Returns: string }
+      redeem_invitation: { Args: never; Returns: string }
       user_has_role: {
         Args: {
           p_min: Database["public"]["Enums"]["member_role"]
@@ -1376,7 +1391,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      user_org_ids: { Args: Record<PropertyKey, never>; Returns: string[] }
+      user_org_ids: { Args: never; Returns: string[] }
     }
     Enums: {
       member_role: "owner" | "admin" | "agent" | "viewer"

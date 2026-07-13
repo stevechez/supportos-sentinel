@@ -43,11 +43,15 @@ export default function RootLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<html
-			lang="en"
-			className={cn(heading.variable, body.variable, 'dark')}
-		>
+		<html lang="en" className={cn(heading.variable, body.variable, 'dark')}>
 			<body className="bg-background font-sans text-foreground">
+				<a
+					href="#main-content"
+					className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-medium focus:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-brand/50"
+				>
+					Skip to content
+				</a>
+
 				{children}
 			</body>
 		</html>

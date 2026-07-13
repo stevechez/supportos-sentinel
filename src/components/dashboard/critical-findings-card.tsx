@@ -1,4 +1,6 @@
-import { AlertTriangle, ArrowRight, Clock3 } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Clock3, ShieldCheck } from 'lucide-react';
+
+import { EmptyState } from './empty-state';
 
 interface Finding {
 	id: number;
@@ -37,7 +39,7 @@ export function CriticalFindingsCard() {
 		<div className="rounded-xl border bg-card shadow-sm">
 			<div className="flex items-center justify-between border-b px-6 py-4">
 				<div className="flex items-center gap-2">
-					<AlertTriangle className="h-5 w-5 text-destructive" />
+					<AlertTriangle className="h-5 w-5 text-destructive" aria-hidden="true" />
 
 					<div>
 						<h2 className="font-heading text-lg text-foreground">
@@ -51,42 +53,51 @@ export function CriticalFindingsCard() {
 				</div>
 			</div>
 
-			<div className="divide-y">
-				{findings.map(finding => (
-					<div
-						key={finding.id}
-						className="cursor-pointer p-5 transition-colors hover:bg-muted/40"
-					>
-						<div className="mb-3 flex items-start justify-between gap-4">
-							<div>
-								<h3 className="font-medium leading-6">{finding.title}</h3>
+			{findings.length === 0 ? (
+				<EmptyState
+					icon={ShieldCheck}
+					title="No critical findings"
+					description="Sentinel hasn't detected any high-priority issues. You'll see them here as soon as they come up."
+				/>
+			) : (
+				<div className="divide-y">
+					{findings.map(finding => (
+						<div key={finding.id} className="p-5 transition-colors hover:bg-muted/40">
+							<div className="mb-3 flex items-start justify-between gap-4">
+								<div>
+									<h3 className="font-medium leading-6">{finding.title}</h3>
 
-								<div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-									<Clock3 className="h-3.5 w-3.5" />
+									<div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+										<Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
 
-									{finding.detected}
+										{finding.detected}
+									</div>
 								</div>
+
+								<SeverityBadge severity={finding.severity} />
 							</div>
 
-							<SeverityBadge severity={finding.severity} />
-						</div>
+							<div className="flex items-center justify-between">
+								<div className="text-sm text-muted-foreground">
+									Confidence{' '}
+									<span className="font-semibold text-foreground">
+										{finding.confidence}%
+									</span>
+								</div>
 
-						<div className="flex items-center justify-between">
-							<div className="text-sm text-muted-foreground">
-								Confidence{' '}
-								<span className="font-semibold text-foreground">
-									{finding.confidence}%
-								</span>
+								<button
+									type="button"
+									className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+								>
+									View Details
+									<span className="sr-only">for {finding.title}</span>
+									<ArrowRight className="h-4 w-4" aria-hidden="true" />
+								</button>
 							</div>
-
-							<button className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
-								View Details
-								<ArrowRight className="h-4 w-4" />
-							</button>
 						</div>
-					</div>
-				))}
-			</div>
+					))}
+				</div>
+			)}
 		</div>
 	);
 }
