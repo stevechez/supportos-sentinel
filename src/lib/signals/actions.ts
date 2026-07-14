@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@supportos/auth/server';
 
 import { getCurrentMembership } from '@/lib/dashboard/dashboard';
+import { logActivity } from '@/lib/activity';
 
 import { ingestSignal, SignalIngestError } from './ingest';
 import { buildPattern, MIN_RECURRENCE, deriveFindingFromPattern } from './patterns';
@@ -127,6 +128,14 @@ export async function createFindingFromPatternAction(
 			// not worth failing the whole action over.
 		}
 
+		await logActivity(supabase, {
+			organizationId: membership.organizationId,
+			memberId: membership.memberId,
+			action: 'created_finding_from_pattern',
+			entityType: 'sentinel_finding',
+			entityId: finding.id,
+		});
+
 		revalidatePath('/dashboard');
 		return { ok: true, findingId: finding.id };
 	} catch (error) {
@@ -151,6 +160,13 @@ export async function syncSupportOsSignalsAction(): Promise<SyncSupportOsSignals
 
 		const supabase = await createClient();
 		const { newSignals } = await syncSupportOsSignals(supabase, membership.organizationId);
+
+		await logActivity(supabase, {
+			organizationId: membership.organizationId,
+			memberId: membership.memberId,
+			action: 'synced_signals',
+			metadata: { newSignalCount: newSignals.length },
+		});
 
 		revalidatePath('/dashboard');
 		return { ok: true, newSignalCount: newSignals.length };

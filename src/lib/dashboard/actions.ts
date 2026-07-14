@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache';
 
 import { createClient } from '@supportos/auth/server';
 
+import { logActivity } from '@/lib/activity';
+
 import { BaselineError, createBaselineReport } from './baseline';
 import { getCurrentMembership, getExecutiveDashboardData } from './dashboard';
 import {
@@ -63,6 +65,15 @@ export async function updateFindingStatusAction(
 		return { ok: false, error: GENERIC_ERROR };
 	}
 
+	await logActivity(supabase, {
+		organizationId: membership.organizationId,
+		memberId: membership.memberId,
+		action: 'updated_finding_status',
+		entityType: 'sentinel_finding',
+		entityId: findingId,
+		metadata: { status: nextStatus },
+	});
+
 	revalidatePath('/dashboard');
 	return { ok: true };
 }
@@ -91,6 +102,13 @@ export async function createBaselineReportAction(): Promise<MutationResult> {
 	try {
 		const supabase = await createClient();
 		await createBaselineReport(supabase, membership.organizationId, metrics);
+
+		await logActivity(supabase, {
+			organizationId: membership.organizationId,
+			memberId: membership.memberId,
+			action: 'created_baseline_report',
+		});
+
 		revalidatePath('/dashboard');
 		return { ok: true };
 	} catch (error) {
@@ -136,6 +154,15 @@ export async function updateRecommendationStatusAction(
 		console.error('[dashboard] updating recommendation status:', error);
 		return { ok: false, error: GENERIC_ERROR };
 	}
+
+	await logActivity(supabase, {
+		organizationId: membership.organizationId,
+		memberId: membership.memberId,
+		action: 'updated_recommendation_status',
+		entityType: 'sentinel_recommendation',
+		entityId: recommendationId,
+		metadata: { status: nextStatus },
+	});
 
 	revalidatePath('/dashboard');
 	return { ok: true };
