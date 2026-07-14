@@ -1,5 +1,6 @@
 import type { FindingRow, RecommendationRow, ReportRow } from './analysis';
 import { calculateImprovement } from './improvement';
+import { jaccardSimilarity, MIN_SIMILARITY, significantWords } from '../text-similarity';
 
 // ---------------------------------------------------------------------------
 // Phase 12 -- organizational memory.
@@ -106,43 +107,6 @@ export function buildImprovementEvents(
 // Word-overlap (Jaccard over significant words) is enough for that --
 // no embeddings, no vector database, per the handoff's explicit scope.
 // ---------------------------------------------------------------------------
-
-const STOPWORDS = new Set([
-	'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been', 'my', 'your', 'our', 'their',
-	'this', 'that', 'these', 'those', 'to', 'for', 'of', 'on', 'in', 'with', 'and', 'or', 'not',
-	'no', 'do', 'does', 'did', 'can', 'cant', "can't", 'i', 'it', 'me', 'we', 'you', 'us',
-	'about', 'from', 'again',
-]);
-
-function significantWords(title: string): Set<string> {
-	const words = title
-		.toLowerCase()
-		// Strip apostrophes first (not replace with space) so "can't" becomes
-		// "cant" -- a real stopword -- instead of splitting into stray "can"
-		// and "t" tokens.
-		.replace(/['’]/g, '')
-		.replace(/[^\p{L}\p{N}\s]/gu, ' ')
-		.split(/\s+/)
-		.filter(word => word.length > 0 && !STOPWORDS.has(word));
-	return new Set(words);
-}
-
-function jaccardSimilarity(a: Set<string>, b: Set<string>): number {
-	if (a.size === 0 || b.size === 0) {
-		return 0;
-	}
-	let intersection = 0;
-	for (const word of a) {
-		if (b.has(word)) {
-			intersection += 1;
-		}
-	}
-	const union = a.size + b.size - intersection;
-	return union === 0 ? 0 : intersection / union;
-}
-
-/** Below this overlap, two titles are treated as unrelated rather than "the same theme." */
-export const MIN_SIMILARITY = 0.3;
 
 export interface SimilarResolution {
 	event: ImprovementEvent;
