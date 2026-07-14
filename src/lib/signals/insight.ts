@@ -10,6 +10,9 @@ import type { OperationalSignal } from './types';
 
 export interface FirstInsightSummary {
 	signalCount: number;
+	/** Phase 13B: broken out by type so the first-value moment can say "127 conversations, 42 tickets," not just a single opaque "signals" count. */
+	conversationCount: number;
+	ticketCount: number;
 	recurringIssueCount: number;
 	knowledgeGapCount: number;
 	topPattern: SignalPattern | null;
@@ -21,10 +24,29 @@ export function buildFirstInsightSummary(
 ): FirstInsightSummary {
 	return {
 		signalCount: signals.length,
+		conversationCount: signals.filter(signal => signal.type === 'conversation').length,
+		ticketCount: signals.filter(signal => signal.type === 'ticket' || signal.type === 'ticket_volume')
+			.length,
 		recurringIssueCount: patterns.length,
 		knowledgeGapCount: signals.filter(signal => signal.type === 'knowledge_gap').length,
 		topPattern: patterns[0] ?? null,
 	};
+}
+
+/**
+ * Phase 13B: the one-line recommended next step for the first-value card --
+ * a plain restatement of what the headline already implies, not a new
+ * judgment. Kept separate from firstInsightHeadline() so the card can show
+ * "what we found" and "what to do" as two distinct, short lines.
+ */
+export function firstInsightRecommendedAction(summary: FirstInsightSummary): string | null {
+	if (summary.topPattern) {
+		return 'Review self-service documentation for this issue.';
+	}
+	if (summary.knowledgeGapCount > 0) {
+		return 'Add documentation for the questions customers are asking most.';
+	}
+	return null;
 }
 
 /**

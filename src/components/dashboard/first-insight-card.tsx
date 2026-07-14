@@ -9,7 +9,11 @@ import { Button } from '@supportos/ui/components/button';
 import { generateWelcomeBriefAction } from '@/lib/ai/actions';
 import type { WelcomeBrief } from '@/lib/ai/types';
 import { createBaselineReportAction } from '@/lib/dashboard/actions';
-import { firstInsightHeadline, type FirstInsightSummary } from '@/lib/signals/insight';
+import {
+	firstInsightHeadline,
+	firstInsightRecommendedAction,
+	type FirstInsightSummary,
+} from '@/lib/signals/insight';
 
 interface FirstInsightCardProps {
 	summary: FirstInsightSummary;
@@ -58,25 +62,54 @@ export function FirstInsightCard({ summary }: FirstInsightCardProps) {
 	}
 
 	const isLoadingBrief = isPending && briefState.status === 'loading';
+	const recommendedAction = firstInsightRecommendedAction(summary);
 
 	return (
 		<div className="rounded-xl border border-primary/20 bg-card shadow-sm">
 			<div className="flex items-center gap-2 border-b px-6 py-4">
 				<Sparkles className="h-5 w-5 text-primary" aria-hidden="true" />
 				<div>
-					<h2 className="font-heading text-lg text-foreground">Your First Sentinel Insight</h2>
-					<p className="text-sm text-muted-foreground">What Sentinel found in your first sync</p>
+					<h2 className="font-heading text-lg text-foreground">Your first Sentinel report is ready</h2>
+					<p className="text-sm text-muted-foreground">Here&apos;s what we found in your first sync</p>
 				</div>
 			</div>
 
 			<div className="p-6">
-				<div className="grid grid-cols-3 gap-4 text-center sm:grid-cols-3">
-					<Stat label="Signals received" value={summary.signalCount} />
-					<Stat label="Recurring issues" value={summary.recurringIssueCount} />
-					<Stat label="Knowledge gaps" value={summary.knowledgeGapCount} />
+				<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+					We analyzed
+				</p>
+				<div className="mt-2 grid grid-cols-3 gap-4 text-center sm:grid-cols-3">
+					<Stat label="conversations" value={summary.conversationCount} />
+					<Stat label="tickets" value={summary.ticketCount} />
+					<Stat label="knowledge gaps" value={summary.knowledgeGapCount} />
 				</div>
 
-				<p className="mt-6 text-base leading-7 text-foreground">{firstInsightHeadline(summary)}</p>
+				<div className="mt-6 space-y-3 border-t pt-5">
+					<div>
+						<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+							We found
+						</p>
+						<p className="mt-1 text-base leading-7 text-foreground">{firstInsightHeadline(summary)}</p>
+					</div>
+
+					{summary.topPattern && (
+						<div>
+							<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+								Biggest opportunity
+							</p>
+							<p className="mt-1 text-sm font-medium text-foreground">{summary.topPattern.title}</p>
+						</div>
+					)}
+
+					{recommendedAction && (
+						<div>
+							<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+								Recommended action
+							</p>
+							<p className="mt-1 text-sm text-foreground">{recommendedAction}</p>
+						</div>
+					)}
+				</div>
 
 				<div className="mt-5 flex flex-wrap items-center gap-3">
 					{briefState.status === 'idle' && (

@@ -60,7 +60,7 @@ export function KnowledgeGapsMetric({ gaps }: KnowledgeGapsMetricProps) {
 					<EmptyState
 						icon={BookOpen}
 						title="No knowledge gaps"
-						description="Sentinel hasn't detected any undocumented questions."
+						description="Sentinel hasn't noticed any undocumented questions -- that's a good sign for your documentation. Gaps will show up here automatically as more activity comes in."
 					/>
 				) : (
 					<div className="divide-y">

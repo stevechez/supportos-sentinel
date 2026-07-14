@@ -48,7 +48,7 @@ export function RecommendedActionsCard({ recommendations }: RecommendedActionsCa
 				<EmptyState
 					icon={Sparkles}
 					title="No recommended actions yet."
-					description="Sentinel will generate recommendations as findings are identified."
+					description="Sentinel turns findings into recommendations automatically -- there's nothing to act on until one is identified. Log some customer activity or connect a source to get started."
 				/>
 			) : (
 				<>

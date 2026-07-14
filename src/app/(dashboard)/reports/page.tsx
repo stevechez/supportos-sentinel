@@ -21,7 +21,7 @@ export default async function ReportsPage() {
 					<EmptyState
 						icon={AlertTriangle}
 						title="No organization found"
-						description="Your account isn't linked to an organization yet."
+						description="Your account isn't linked to an organization yet, so there's no report to show. Ask your workspace admin to add you to an organization, or contact support if you believe this is a mistake."
 					/>
 				</Container>
 			</section>
@@ -89,7 +89,7 @@ export default async function ReportsPage() {
 						<EmptyState
 							icon={Sparkles}
 							title="Excellent."
-							description="No critical operational risks detected."
+							description="Sentinel hasn't found any operational risks worth flagging this period. Keep connecting sources so future reports stay this clear."
 						/>
 					</div>
 				) : (

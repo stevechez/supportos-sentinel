@@ -39,7 +39,7 @@ export default async function FindingsPage() {
 						<EmptyState
 							icon={ShieldCheck}
 							title="Excellent."
-							description="No critical operational risks detected."
+							description="Sentinel hasn't detected any operational risks in your customer activity. Keep connecting sources and logging activity to improve visibility as your data grows."
 						/>
 					</div>
 				) : (

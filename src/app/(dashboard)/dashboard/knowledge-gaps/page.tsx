@@ -53,7 +53,7 @@ export default async function KnowledgeGapsPage() {
 						<EmptyState
 							icon={BookOpen}
 							title="No knowledge gaps yet."
-							description="Sentinel hasn't detected any undocumented questions."
+							description="Sentinel hasn't noticed any undocumented questions -- that's a good sign for your documentation. As more conversations and tickets come in, any gaps will show up here automatically."
 						/>
 					</div>
 				) : (
