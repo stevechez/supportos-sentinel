@@ -1,4 +1,4 @@
-import type { SentinelInsight } from './types';
+import type { ImprovementInsight, SentinelInsight } from './types';
 
 // Prompt design (Phase 6 Workstream 4). The AI is cast as an operations
 // advisor writing for a company executive, not a general-purpose data
@@ -48,5 +48,52 @@ export function buildExecutiveBriefPrompt(insight: SentinelInsight): string {
 		'Write the executive brief for this report.',
 		'',
 		RESPONSE_SCHEMA_INSTRUCTIONS,
+	].join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7D -- Improvement Advisor
+//
+// A narrower prompt than the executive brief: the model is only ever asked
+// to explain an already-measured result (a completed action and the
+// before/after health score Sentinel's scoring engine computed around it),
+// never to estimate or predict one. "The system calculates, AI explains" --
+// this prompt has no room for the model to do the calculating.
+// ---------------------------------------------------------------------------
+
+export const IMPROVEMENT_ADVISOR_SYSTEM_PROMPT =
+	'You are an operations advisor for SupportOS Sentinel. A team just completed ' +
+	"a recommended action, and Sentinel's scoring engine has already measured " +
+	'the before/after health score change. Explain what happened in plain ' +
+	'language for a company executive, in the past tense, as a completed result ' +
+	'-- never as a prediction or estimate. If no after-score has been measured ' +
+	'by a later report yet, say so plainly rather than implying a final result. ' +
+	'Be concise and concrete. You only know what is in the data provided -- ' +
+	'never invent numbers or facts that are not present in it.';
+
+const IMPROVEMENT_RESPONSE_SCHEMA_INSTRUCTIONS = `Respond with ONLY a single JSON object, no markdown fences, no commentary before or after it, matching exactly this shape:
+{
+  "summary": string (1-2 sentences, plain language, past tense, for a non-technical executive),
+  "estimatedImpact": string (a short phrase describing the measured health score change, e.g. "+8 points" or "Not yet measurable" if there is no after-score yet)
+}`;
+
+export function buildImprovementExplanationPrompt(insight: ImprovementInsight): string {
+	const result = {
+		actionTitle: insight.actionTitle,
+		relatedFinding: insight.relatedFindingTitle,
+		healthScoreBefore: insight.healthScoreBefore,
+		healthScoreAfter: insight.healthScoreAfter,
+		delta: insight.delta,
+		measuredByReport: insight.measuredByReport,
+	};
+
+	return [
+		'Here is a completed action and its measured effect on the health score:',
+		'',
+		JSON.stringify(result, null, 2),
+		'',
+		'Explain this result for a company executive.',
+		'',
+		IMPROVEMENT_RESPONSE_SCHEMA_INSTRUCTIONS,
 	].join('\n');
 }

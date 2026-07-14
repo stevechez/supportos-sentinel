@@ -34,6 +34,8 @@ export interface Finding {
 	rank: number;
 	isTopPriority: boolean;
 	reasons: string[];
+	/** Raw lifecycle status column (Phase 7A) -- 'open' | 'acknowledged' | 'in_progress' | 'resolved'. */
+	status: string;
 }
 
 export interface Recommendation {
@@ -43,6 +45,9 @@ export interface Recommendation {
 	impact: ImpactLevel;
 	effort: EffortLevel;
 	rank: number;
+	/** Raw lifecycle status column (Phase 7B) -- 'pending' | 'in_progress' | 'completed'. */
+	status: string;
+	findingId: string | null;
 }
 
 export interface KnowledgeGap {
@@ -340,6 +345,7 @@ export function prioritizeFindings(findings: FindingRow[], reports: ReportRow[] 
 		rank: index + 1,
 		isTopPriority: index === 0,
 		reasons,
+		status: finding.status,
 	}));
 }
 
@@ -414,6 +420,8 @@ export function prioritizeRecommendations(
 		impact,
 		effort,
 		rank: index + 1,
+		status: recommendation.status ?? 'pending',
+		findingId: recommendation.finding_id,
 	}));
 }
 

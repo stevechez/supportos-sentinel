@@ -5,19 +5,20 @@
 -- insert org-less rows.
 --
 -- Rather than a handful of unrelated rows, this tells one connected
--- operational story per organization so Phase 5's prioritization, trend,
--- and drill-down features have something real to show:
+-- operational story per organization, now running the full Phase 7
+-- improvement loop end to end:
 --
 --   finding (password reset failures, 21 days old)
 --     -> knowledge gap (no reset documentation exists yet)
---     -> recommendation (publish a reset guide)
---     -> the issue is still open 3 weeks later, and has already survived
---        one Sentinel report cycle
+--     -> recommendation (publish a reset guide) -- completed 4 days ago
+--     -> finding resolved 3 days ago
+--     -> health score measurably improves (Recent Improvements card,
+--        Executive Timeline)
 --
 -- plus two smaller, newer threads (billing confusion, a silent onboarding
--- failure) so the dashboard has more than one finding to rank, and two
--- historical reports (14 and 7 days ago) so the Trend Detection workstream
--- has real report-to-report deltas to compute instead of a single point.
+-- failure) that are still active, so the dashboard has open work to show
+-- alongside the completed story, and two historical reports (14 and 7 days
+-- ago) so Trend Detection has real report-to-report deltas.
 --
 -- Safe to re-run: organizations that already have sentinel_findings rows
 -- are skipped entirely.
@@ -25,6 +26,7 @@
 do $$
 declare
   org record;
+  member_id uuid;
   finding_password uuid;
   finding_billing uuid;
   finding_onboarding uuid;
@@ -36,6 +38,8 @@ begin
     ) then
       continue;
     end if;
+
+    select id into member_id from members where organization_id = org.id limit 1;
 
     -- Day -21: the long-running password reset issue.
     insert into sentinel_findings
@@ -116,6 +120,18 @@ begin
       (org.id, finding_onboarding, 'Review onboarding workflow error handling',
        'Prevent silent onboarding failures from reaching new customers.', 'high', 'pending',
        now() - interval '3 days');
+
+    -- Day -4: the password reset guide gets published -- Phase 7's improvement
+    -- loop closes the recommendation.
+    update sentinel_recommendations
+      set status = 'completed', completed_at = now() - interval '4 days', completed_by = member_id
+      where organization_id = org.id and finding_id = finding_password;
+
+    -- Day -3: with the guide live and reset failures confirmed fixed, the
+    -- finding itself is resolved.
+    update sentinel_findings
+      set status = 'resolved', resolved_at = now() - interval '3 days', resolved_by = member_id
+      where id = finding_password;
 
   end loop;
 end $$;

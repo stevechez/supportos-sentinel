@@ -8,6 +8,14 @@ import {
 	type RecommendationRow,
 	type ReportRow,
 } from './analysis';
+import {
+	ACTIVE_FINDING_STATUSES,
+	ACTIVE_RECOMMENDATION_STATUSES,
+	buildExecutiveTimeline,
+	calculateImprovementHistory,
+	type ImprovementRecord,
+	type TimelineEvent,
+} from './improvement';
 
 // Re-export the UI-facing types so components can import everything they
 // need from one place (`@/lib/dashboard/dashboard`) without reaching into
@@ -26,8 +34,23 @@ export type {
 	Trend,
 	TrendPoint,
 } from './analysis';
+export type {
+	FindingLifecycleStatus,
+	ImprovementRecord,
+	RecommendationLifecycleStatus,
+	TimelineEvent,
+} from './improvement';
+export {
+	FINDING_STATUS_LABELS,
+	FINDING_STATUS_ORDER,
+	RECOMMENDATION_STATUS_LABELS,
+	RECOMMENDATION_STATUS_ORDER,
+} from './improvement';
 
-export type ExecutiveDashboardData = DashboardMetrics;
+export type ExecutiveDashboardData = DashboardMetrics & {
+	improvementHistory: ImprovementRecord[];
+	timeline: TimelineEvent[];
+};
 
 // A distinct, generic error type for anything that goes wrong talking to
 // Supabase while building the dashboard -- a network blip, an RLS denial
@@ -52,10 +75,21 @@ function assertNoError(context: string, error: { message: string } | null): void
 }
 
 // ---------------------------------------------------------------------------
-// Organization resolution
+// Organization / membership resolution
 // ---------------------------------------------------------------------------
 
-async function getCurrentOrganizationId(): Promise<string | null> {
+export interface CurrentMembership {
+	organizationId: string;
+	memberId: string;
+}
+
+/**
+ * Resolves both the current organization and the current member row id.
+ * The member id is only needed by mutations (Phase 7 status transitions,
+ * which stamp resolved_by/completed_by) -- read paths only need
+ * getCurrentOrganizationId().
+ */
+export async function getCurrentMembership(): Promise<CurrentMembership | null> {
 	const supabase = await createClient();
 
 	const {
@@ -63,22 +97,29 @@ async function getCurrentOrganizationId(): Promise<string | null> {
 		error: userError,
 	} = await supabase.auth.getUser();
 
-	// Not signed in / session invalid -- not a Sentinel data error, the
-	// route itself is auth-protected upstream. Treat as "no organization".
 	if (userError || !user) {
 		return null;
 	}
 
 	const { data: member, error: memberError } = await supabase
 		.from('members')
-		.select('organization_id')
+		.select('id, organization_id')
 		.eq('user_id', user.id)
 		.limit(1)
 		.maybeSingle();
 
-	assertNoError('resolving current organization', memberError);
+	assertNoError('resolving current membership', memberError);
 
-	return member?.organization_id ?? null;
+	if (!member) {
+		return null;
+	}
+
+	return { organizationId: member.organization_id, memberId: member.id };
+}
+
+async function getCurrentOrganizationId(): Promise<string | null> {
+	const membership = await getCurrentMembership();
+	return membership?.organizationId ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -89,12 +130,15 @@ async function getCurrentOrganizationId(): Promise<string | null> {
 // instead of a blank or broken page.
 // ---------------------------------------------------------------------------
 
-async function fetchFindings(organizationId: string, onlyOpen: boolean): Promise<FindingRow[]> {
+async function fetchFindings(organizationId: string, onlyActive: boolean): Promise<FindingRow[]> {
 	const supabase = await createClient();
 
 	let query = supabase.from('sentinel_findings').select('*').eq('organization_id', organizationId);
-	if (onlyOpen) {
-		query = query.eq('status', 'open');
+	if (onlyActive) {
+		// "Active" = not yet resolved. Acknowledged/in-progress findings are
+		// still work in flight and belong on the dashboard, unlike Phase 4/5
+		// which only ever considered a single 'open' status.
+		query = query.in('status', ACTIVE_FINDING_STATUSES);
 	}
 
 	const { data, error } = await query.order('created_at', { ascending: false });
@@ -104,7 +148,7 @@ async function fetchFindings(organizationId: string, onlyOpen: boolean): Promise
 
 async function fetchRecommendations(
 	organizationId: string,
-	onlyPending: boolean,
+	onlyActive: boolean,
 ): Promise<RecommendationRow[]> {
 	const supabase = await createClient();
 
@@ -112,8 +156,8 @@ async function fetchRecommendations(
 		.from('sentinel_recommendations')
 		.select('*')
 		.eq('organization_id', organizationId);
-	if (onlyPending) {
-		query = query.eq('status', 'pending');
+	if (onlyActive) {
+		query = query.in('status', ACTIVE_RECOMMENDATION_STATUSES);
 	}
 
 	const { data, error } = await query.order('created_at', { ascending: false });
@@ -164,23 +208,29 @@ export async function getExecutiveDashboardData(): Promise<ExecutiveDashboardDat
 		return null;
 	}
 
-	const [openFindings, allFindings, pendingRecommendations, openKnowledgeGaps, allKnowledgeGaps, reports] =
+	const [activeFindings, allFindings, activeRecommendations, allRecommendations, openKnowledgeGaps, allKnowledgeGaps, reports] =
 		await Promise.all([
 			fetchFindings(organizationId, true),
 			fetchFindings(organizationId, false),
 			fetchRecommendations(organizationId, true),
+			fetchRecommendations(organizationId, false),
 			fetchKnowledgeGaps(organizationId, true),
 			fetchKnowledgeGaps(organizationId, false),
 			fetchReports(organizationId),
 		]);
 
-	return buildDashboardMetrics({
-		openFindings,
+	const metrics = buildDashboardMetrics({
+		openFindings: activeFindings,
 		allFindings,
-		pendingRecommendations,
+		pendingRecommendations: activeRecommendations,
 		openKnowledgeGaps,
 		allKnowledgeGaps,
 		reports,
 		reportCount: reports.length,
 	});
+
+	const improvementHistory = calculateImprovementHistory(allRecommendations, reports, metrics.healthScore.score);
+	const timeline = buildExecutiveTimeline(allFindings, allRecommendations, reports);
+
+	return { ...metrics, improvementHistory, timeline };
 }

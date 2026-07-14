@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { ArrowRight, CheckCircle2, ListChecks, Sparkles } from 'lucide-react';
 
 import { EmptyState } from './empty-state';
@@ -12,6 +13,8 @@ import {
 } from '@supportos/ui/components/sheet';
 import { Button } from '@supportos/ui/components/button';
 
+import { updateRecommendationStatusAction } from '@/lib/dashboard/actions';
+import { RECOMMENDATION_STATUS_LABELS, RECOMMENDATION_STATUS_ORDER } from '@/lib/dashboard/improvement';
 import type { Recommendation } from '@/lib/dashboard/dashboard';
 
 interface RecommendedActionsCardProps {
@@ -111,6 +114,12 @@ function RecommendationRow({
 					<p className="mt-1 text-sm text-muted-foreground">
 						{recommendation.impactDescription}
 					</p>
+
+					{detailed && (
+						<div className="mt-4 border-t pt-4">
+							<StatusControl recommendationId={recommendation.id} status={recommendation.status} />
+						</div>
+					)}
 				</div>
 			</div>
 
@@ -131,6 +140,67 @@ function RecommendationRow({
 					</button>
 				)}
 			</div>
+		</div>
+	);
+}
+
+/**
+ * Advances a recommendation one step through the lifecycle (Not Started ->
+ * In Progress -> Completed). Same single "next step" button pattern as the
+ * finding lifecycle control -- a simple forward chain, not a task app.
+ */
+function StatusControl({ recommendationId, status }: { recommendationId: string; status: string }) {
+	const router = useRouter();
+	const [isPending, startTransition] = useTransition();
+	const [error, setError] = useState<string | null>(null);
+
+	const currentIndex = RECOMMENDATION_STATUS_ORDER.indexOf(
+		status as (typeof RECOMMENDATION_STATUS_ORDER)[number],
+	);
+	const nextStatus = currentIndex >= 0 ? RECOMMENDATION_STATUS_ORDER[currentIndex + 1] : undefined;
+	const isCompleted = status === 'completed';
+
+	function handleAdvance() {
+		if (!nextStatus) {
+			return;
+		}
+		setError(null);
+		startTransition(async () => {
+			const result = await updateRecommendationStatusAction(recommendationId, nextStatus);
+			if (result.ok) {
+				router.refresh();
+			} else {
+				setError(result.error);
+			}
+		});
+	}
+
+	return (
+		<div className="flex flex-wrap items-center gap-3">
+			<span className="w-24 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+				Status
+			</span>
+
+			<span
+				className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
+					isCompleted ? 'bg-emerald-400/10 text-emerald-400' : 'bg-muted text-muted-foreground'
+				}`}
+			>
+				{isCompleted && <CheckCircle2 className="h-3 w-3" aria-hidden="true" />}
+				{RECOMMENDATION_STATUS_LABELS[status as keyof typeof RECOMMENDATION_STATUS_LABELS] ?? status}
+			</span>
+
+			{nextStatus && (
+				<Button size="xs" variant="outline" onClick={handleAdvance} disabled={isPending}>
+					{isPending
+						? 'Updating…'
+						: nextStatus === 'completed'
+							? 'Mark Complete'
+							: `Mark ${RECOMMENDATION_STATUS_LABELS[nextStatus]}`}
+				</Button>
+			)}
+
+			{error && <span className="text-xs text-destructive">{error}</span>}
 		</div>
 	);
 }

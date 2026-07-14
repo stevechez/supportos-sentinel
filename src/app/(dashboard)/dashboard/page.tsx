@@ -7,6 +7,8 @@ import { RecommendedActionsCard } from '@/components/dashboard/recommended-actio
 import { KnowledgeGapsMetric } from '@/components/dashboard/knowledge-gaps-metric';
 import { TrendSummaryCard } from '@/components/dashboard/trend-summary-card';
 import { AiExecutiveBriefCard } from '@/components/dashboard/ai-executive-brief-card';
+import { ExecutiveTimelineCard } from '@/components/dashboard/executive-timeline-card';
+import { RecentImprovementsCard } from '@/components/dashboard/recent-improvements-card';
 import { EmptyState } from '@/components/dashboard/empty-state';
 
 import { Activity, AlertTriangle, Building2, ClipboardList } from 'lucide-react';
@@ -35,7 +37,17 @@ export default async function DashboardPage() {
 		);
 	}
 
-	const { healthScore, executiveSummary, findings, recommendations, knowledgeGaps, trend, counts } = data;
+	const {
+		healthScore,
+		executiveSummary,
+		findings,
+		recommendations,
+		knowledgeGaps,
+		trend,
+		counts,
+		improvementHistory,
+		timeline,
+	} = data;
 
 	return (
 		<>
@@ -92,14 +104,20 @@ export default async function DashboardPage() {
 						/>
 					</div>
 
-					<CriticalFindingsCard findings={findings} />
+					<CriticalFindingsCard findings={findings} recommendations={recommendations} />
 				</div>
 
 				{/* AI Executive Brief */}
 				<AiExecutiveBriefCard />
 
-				{/* Bottom Row */}
+				{/* Action Plan */}
 				<RecommendedActionsCard recommendations={recommendations} />
+
+				{/* Improvement Loop (Phase 7) */}
+				<div className="grid gap-6 lg:grid-cols-2">
+					<RecentImprovementsCard improvements={improvementHistory} />
+					<ExecutiveTimelineCard events={timeline} />
+				</div>
 			</div>
 		</>
 	);

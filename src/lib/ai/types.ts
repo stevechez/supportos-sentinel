@@ -55,6 +55,28 @@ export interface ExecutiveBrief {
 }
 
 /**
+ * ImprovementInsight -- the Phase 7D input contract. Built the same way as
+ * SentinelInsight: a pure transform over an already-completed action and
+ * the deterministic before/after health score improvement.ts computed for
+ * it. The AI explains a measured result here; it never estimates one.
+ */
+export interface ImprovementInsight {
+	actionTitle: string;
+	relatedFindingTitle: string | null;
+	healthScoreBefore: number | null;
+	healthScoreAfter: number;
+	delta: number | null;
+	/** False when "after" is today's live score rather than a later report -- lets the AI hedge appropriately. */
+	measuredByReport: boolean;
+}
+
+/** Phase 7D's output contract -- small and typed, same discipline as ExecutiveBrief. */
+export interface ImprovementExplanation {
+	summary: string;
+	estimatedImpact: string;
+}
+
+/**
  * Thrown for any failure in the AI boundary -- missing configuration,
  * network failure, non-200 response, malformed/invalid JSON. Always carries
  * a generic, user-safe message; the real cause is attached for server-side

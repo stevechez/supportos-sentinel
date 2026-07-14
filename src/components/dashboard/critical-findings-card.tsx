@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { AlertTriangle, ArrowRight, Clock3, ShieldCheck, Star } from 'lucide-react';
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { AlertTriangle, ArrowRight, CheckCircle2, Clock3, ShieldCheck, Star } from 'lucide-react';
 
 import { EmptyState } from './empty-state';
 import {
@@ -12,15 +13,18 @@ import {
 } from '@supportos/ui/components/sheet';
 import { Button } from '@supportos/ui/components/button';
 
-import type { Finding } from '@/lib/dashboard/dashboard';
+import { updateFindingStatusAction } from '@/lib/dashboard/actions';
+import { FINDING_STATUS_LABELS, FINDING_STATUS_ORDER } from '@/lib/dashboard/improvement';
+import type { Finding, Recommendation } from '@/lib/dashboard/dashboard';
 
 interface CriticalFindingsCardProps {
 	findings: Finding[];
+	recommendations: Recommendation[];
 }
 
 const INLINE_LIMIT = 3;
 
-export function CriticalFindingsCard({ findings }: CriticalFindingsCardProps) {
+export function CriticalFindingsCard({ findings, recommendations }: CriticalFindingsCardProps) {
 	const [open, setOpen] = useState(false);
 	const visible = findings.slice(0, INLINE_LIMIT);
 	const remaining = findings.length - visible.length;
@@ -53,7 +57,7 @@ export function CriticalFindingsCard({ findings }: CriticalFindingsCardProps) {
 				<>
 					<div className="divide-y">
 						{visible.map(finding => (
-							<FindingRow key={finding.id} finding={finding} />
+							<FindingRow key={finding.id} finding={finding} recommendations={recommendations} />
 						))}
 					</div>
 
@@ -81,7 +85,7 @@ export function CriticalFindingsCard({ findings }: CriticalFindingsCardProps) {
 
 					<div className="divide-y">
 						{findings.map(finding => (
-							<FindingRow key={finding.id} finding={finding} detailed />
+							<FindingRow key={finding.id} finding={finding} recommendations={recommendations} detailed />
 						))}
 					</div>
 				</SheetContent>
@@ -90,7 +94,17 @@ export function CriticalFindingsCard({ findings }: CriticalFindingsCardProps) {
 	);
 }
 
-function FindingRow({ finding, detailed = false }: { finding: Finding; detailed?: boolean }) {
+function FindingRow({
+	finding,
+	recommendations,
+	detailed = false,
+}: {
+	finding: Finding;
+	recommendations: Recommendation[];
+	detailed?: boolean;
+}) {
+	const linkedRecommendation = recommendations.find(r => r.findingId === finding.id);
+
 	return (
 		<div className="p-5 transition-colors hover:bg-muted/40">
 			<div className="mb-3 flex items-start justify-between gap-4">
@@ -116,11 +130,23 @@ function FindingRow({ finding, detailed = false }: { finding: Finding; detailed?
 						))}
 					</div>
 
-					{detailed && finding.businessImpact && (
-						<p className="mt-3 text-sm text-muted-foreground">
-							<span className="font-medium text-foreground">Business impact: </span>
-							{finding.businessImpact}
-						</p>
+					{detailed && (
+						<div className="mt-4 space-y-3 border-t pt-4">
+							<DetailRow label="Status">
+								<StatusControl findingId={finding.id} status={finding.status} />
+							</DetailRow>
+
+							{finding.businessImpact && (
+								<DetailRow label="Business impact">{finding.businessImpact}</DetailRow>
+							)}
+
+							{linkedRecommendation && (
+								<>
+									<DetailRow label="Recommendation">{linkedRecommendation.title}</DetailRow>
+									<DetailRow label="Expected impact">{linkedRecommendation.impact}</DetailRow>
+								</>
+							)}
+						</div>
 					)}
 				</div>
 
@@ -146,6 +172,69 @@ function FindingRow({ finding, detailed = false }: { finding: Finding; detailed?
 					</button>
 				)}
 			</div>
+		</div>
+	);
+}
+
+function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
+	return (
+		<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+			<span className="w-36 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+				{label}
+			</span>
+			<span className="text-sm text-foreground">{children}</span>
+		</div>
+	);
+}
+
+/**
+ * Advances a finding one step through the lifecycle (Open -> Acknowledged
+ * -> In Progress -> Resolved). Deliberately a single "next step" button
+ * rather than a free-form status picker -- the lifecycle is a simple
+ * forward chain per Phase 7's scope, not a general workflow tool.
+ */
+function StatusControl({ findingId, status }: { findingId: string; status: string }) {
+	const router = useRouter();
+	const [isPending, startTransition] = useTransition();
+	const [error, setError] = useState<string | null>(null);
+
+	const currentIndex = FINDING_STATUS_ORDER.indexOf(status as (typeof FINDING_STATUS_ORDER)[number]);
+	const nextStatus = currentIndex >= 0 ? FINDING_STATUS_ORDER[currentIndex + 1] : undefined;
+	const isResolved = status === 'resolved';
+
+	function handleAdvance() {
+		if (!nextStatus) {
+			return;
+		}
+		setError(null);
+		startTransition(async () => {
+			const result = await updateFindingStatusAction(findingId, nextStatus);
+			if (result.ok) {
+				router.refresh();
+			} else {
+				setError(result.error);
+			}
+		});
+	}
+
+	return (
+		<div className="flex flex-wrap items-center gap-3">
+			<span
+				className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
+					isResolved ? 'bg-emerald-400/10 text-emerald-400' : 'bg-muted text-muted-foreground'
+				}`}
+			>
+				{isResolved && <CheckCircle2 className="h-3 w-3" aria-hidden="true" />}
+				{FINDING_STATUS_LABELS[status as keyof typeof FINDING_STATUS_LABELS] ?? status}
+			</span>
+
+			{nextStatus && (
+				<Button size="xs" variant="outline" onClick={handleAdvance} disabled={isPending}>
+					{isPending ? 'Updating…' : `Mark ${FINDING_STATUS_LABELS[nextStatus]}`}
+				</Button>
+			)}
+
+			{error && <span className="text-xs text-destructive">{error}</span>}
 		</div>
 	);
 }

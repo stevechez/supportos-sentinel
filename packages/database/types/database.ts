@@ -1072,6 +1072,8 @@ export type Database = {
 					description: string | null;
 					id: string;
 					organization_id: string;
+					resolved_at: string | null;
+					resolved_by: string | null;
 					severity: string;
 					source: string | null;
 					status: string;
@@ -1085,6 +1087,8 @@ export type Database = {
 					description?: string | null;
 					id?: string;
 					organization_id: string;
+					resolved_at?: string | null;
+					resolved_by?: string | null;
 					severity?: string;
 					source?: string | null;
 					status?: string;
@@ -1098,6 +1102,8 @@ export type Database = {
 					description?: string | null;
 					id?: string;
 					organization_id?: string;
+					resolved_at?: string | null;
+					resolved_by?: string | null;
 					severity?: string;
 					source?: string | null;
 					status?: string;
@@ -1109,6 +1115,13 @@ export type Database = {
 						columns: ['organization_id'];
 						isOneToOne: false;
 						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'sentinel_findings_resolved_by_fkey';
+						columns: ['resolved_by'];
+						isOneToOne: false;
+						referencedRelation: 'members';
 						referencedColumns: ['id'];
 					},
 				];
@@ -1156,6 +1169,8 @@ export type Database = {
 			};
 			sentinel_recommendations: {
 				Row: {
+					completed_at: string | null;
+					completed_by: string | null;
 					created_at: string | null;
 					expected_impact: string | null;
 					finding_id: string | null;
@@ -1166,6 +1181,8 @@ export type Database = {
 					status: string | null;
 				};
 				Insert: {
+					completed_at?: string | null;
+					completed_by?: string | null;
 					created_at?: string | null;
 					expected_impact?: string | null;
 					finding_id?: string | null;
@@ -1176,6 +1193,8 @@ export type Database = {
 					status?: string | null;
 				};
 				Update: {
+					completed_at?: string | null;
+					completed_by?: string | null;
 					created_at?: string | null;
 					expected_impact?: string | null;
 					finding_id?: string | null;
@@ -1186,6 +1205,13 @@ export type Database = {
 					status?: string | null;
 				};
 				Relationships: [
+					{
+						foreignKeyName: 'sentinel_recommendations_completed_by_fkey';
+						columns: ['completed_by'];
+						isOneToOne: false;
+						referencedRelation: 'members';
+						referencedColumns: ['id'];
+					},
 					{
 						foreignKeyName: 'sentinel_recommendations_finding_id_fkey';
 						columns: ['finding_id'];
