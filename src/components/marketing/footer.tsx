@@ -12,8 +12,7 @@ export function MarketingFooter() {
 						</Link>
 
 						<p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
-							Your AI business assistant — for customer conversations, support,
-							and business insight.
+							Understand your customer operations, and improve them every week.
 						</p>
 
 						<p className="mt-6 text-sm text-muted-foreground">
@@ -62,6 +61,20 @@ export function MarketingFooter() {
 								className="block text-muted-foreground transition-colors hover:text-foreground"
 							>
 								Contact
+							</Link>
+
+							<Link
+								href="/trust"
+								className="block text-muted-foreground transition-colors hover:text-foreground"
+							>
+								Trust Center
+							</Link>
+
+							<Link
+								href="/faq"
+								className="block text-muted-foreground transition-colors hover:text-foreground"
+							>
+								FAQ
 							</Link>
 						</div>
 					</div>

@@ -4,10 +4,58 @@ import Link from 'next/link';
 import { Container } from './container';
 import { Reveal } from './reveal';
 
-const features = [
-	'One connected system',
-	'Simple setup',
-	'Everything included',
+// Phase 17D -- pricing model foundation. This is intentionally a
+// positioning device, not a new billing system: the app still has exactly
+// one real Stripe price (`STRIPE_PRICE_ID`), created in the existing
+// signup/login flow, and that's still what "Get started" leads to. What
+// was missing wasn't more billing plumbing -- it was a way for a stranger
+// to size themselves against the product before signing up. Growth is
+// marked as "what most teams choose" because it maps to the one real
+// price point that already exists; Starter and Enterprise are the
+// placeholder framing the Phase 17 handoff explicitly says is acceptable
+// ("do not implement complex billing unless the existing Stripe foundation
+// requires it" -- it doesn't, yet).
+const tiers = [
+	{
+		name: 'Starter',
+		description: 'Small support teams getting their first operational insight.',
+		price: '$49',
+		cta: 'Get started',
+		href: '/signup',
+		highlighted: false,
+		features: [
+			'1 connected source',
+			'Recurring issue detection',
+			'Weekly health score',
+		],
+	},
+	{
+		name: 'Growth',
+		description: 'Growing teams who want to act on what Sentinel finds.',
+		price: '$199',
+		cta: 'Get started',
+		href: '/signup',
+		highlighted: true,
+		features: [
+			'Unlimited connected sources',
+			'Emerging risk detection',
+			'Organizational memory & track record',
+			'Full team access',
+		],
+	},
+	{
+		name: 'Enterprise',
+		description: 'Custom needs, custom rollout.',
+		price: 'Custom',
+		cta: 'Talk to sales',
+		href: '/contact',
+		highlighted: false,
+		features: [
+			'Everything in Growth',
+			'Guided onboarding',
+			'Dedicated support',
+		],
+	},
 ];
 
 export function PricingSection() {
@@ -16,64 +64,74 @@ export function PricingSection() {
 			<Container>
 				<Reveal className="mx-auto max-w-2xl text-center">
 					<h2 className="font-heading text-3xl text-foreground sm:text-4xl">
-						One simple platform.
+						Simple pricing, sized to your team.
 					</h2>
 
 					<p className="mt-6 text-lg leading-8 text-muted-foreground">
-						Everything you need to connect with customers, support your team,
-						and keep your business moving.
+						Every plan includes the same core promise: find recurring issues,
+						and help your team continuously improve.
 					</p>
 				</Reveal>
 
-				<Reveal delay={100} className="relative mx-auto mt-16 max-w-md">
-					<div
-						aria-hidden
-						className="pointer-events-none absolute inset-0 -z-10 rounded-3xl bg-brand/10 blur-2xl"
-					/>
+				<div className="mt-16 grid gap-6 lg:grid-cols-3 lg:items-start">
+					{tiers.map((tier, index) => (
+						<Reveal key={tier.name} delay={index * 80} className="relative h-full">
+							{tier.highlighted && (
+								<div
+									aria-hidden
+									className="pointer-events-none absolute inset-0 -z-10 rounded-3xl bg-brand/10 blur-2xl"
+								/>
+							)}
 
-					<div className="rounded-3xl border border-white/10 bg-card p-8 shadow-xl shadow-black/30 sm:p-10">
-						<h3 className="text-xl font-medium text-foreground">Sentinel</h3>
+							<div
+								className={`flex h-full flex-col rounded-3xl border p-8 ${
+									tier.highlighted
+										? 'border-brand/40 bg-card shadow-xl shadow-black/30'
+										: 'border-white/10 bg-card/60'
+								}`}
+							>
+								{tier.highlighted && (
+									<span className="mb-4 inline-block w-fit rounded-full bg-brand/10 px-3 py-1 text-xs font-medium text-brand">
+										Most teams choose this
+									</span>
+								)}
 
-						<p className="mt-2 text-sm text-muted-foreground">
-							Your AI business assistant.
-						</p>
+								<h3 className="text-xl font-medium text-foreground">{tier.name}</h3>
 
-						<div className="mt-8 flex items-baseline gap-2">
-							<span className="font-heading text-5xl text-foreground">
-								$149
-							</span>
+								<p className="mt-2 text-sm text-muted-foreground">{tier.description}</p>
 
-							<span className="text-muted-foreground">/month</span>
-						</div>
+								<div className="mt-8 flex items-baseline gap-2">
+									<span className="font-heading text-4xl text-foreground">{tier.price}</span>
+									{tier.price !== 'Custom' && <span className="text-muted-foreground">/month</span>}
+								</div>
 
-						<div className="mt-8 space-y-2 border-y border-white/10 py-6 text-base text-foreground/90">
-							<p>Connect with customers.</p>
-							<p>Support your team.</p>
-							<p>Understand your business.</p>
-						</div>
+								<ul className="mt-8 flex-1 space-y-3 border-t border-white/10 pt-6">
+									{tier.features.map(feature => (
+										<li key={feature} className="flex items-center gap-3">
+											<Check className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+											<span className="text-sm text-foreground/90">{feature}</span>
+										</li>
+									))}
+								</ul>
 
-						<ul className="mt-6 space-y-3">
-							{features.map(feature => (
-								<li key={feature} className="flex items-center gap-3">
-									<Check className="h-4 w-4 text-brand" aria-hidden="true" />
+								<Link
+									href={tier.href}
+									className={`mt-8 flex w-full items-center justify-center rounded-full px-6 py-3 text-sm font-medium transition-opacity hover:opacity-90 ${
+										tier.highlighted
+											? 'bg-primary text-primary-foreground'
+											: 'border border-white/15 text-foreground'
+									}`}
+								>
+									{tier.cta}
+								</Link>
+							</div>
+						</Reveal>
+					))}
+				</div>
 
-									<span className="text-sm text-foreground/90">{feature}</span>
-								</li>
-							))}
-						</ul>
-
-						<p className="mt-8 text-sm text-muted-foreground">
-							No complicated setup. No separate tools to manage.
-						</p>
-
-						<Link
-							href="/signup"
-							className="mt-8 flex w-full items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-						>
-							Get Started
-						</Link>
-					</div>
-				</Reveal>
+				<p className="mt-10 text-center text-sm text-muted-foreground">
+					No complicated setup. No separate tools to manage.
+				</p>
 			</Container>
 		</section>
 	);
