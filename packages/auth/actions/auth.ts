@@ -61,6 +61,38 @@ async function ensureWorkspace(
 		throw new Error(workspaceError.message);
 	}
 
+	// Phase 17H -- mark the top of the activation funnel. The rest of the
+	// funnel (connected a source, reached a first insight) is already logged
+	// to `activity_log` by src/lib/activity.ts inside the app; this is the
+	// one funnel event that only makes sense to record here, at the moment
+	// the workspace itself is created. Written directly (not via
+	// src/lib/activity.ts) because packages/auth is shared, framework-level
+	// code and shouldn't import from the app's src/ tree -- same shape of
+	// row, same table, no new dependency between them. Best-effort: a
+	// logging failure must never block account creation.
+	if (organizationId) {
+		const { data: newMembership } = await supabase
+			.from('members')
+			.select('id')
+			.eq('user_id', userId)
+			.eq('organization_id', organizationId)
+			.maybeSingle();
+
+		const { error: activityError } = await supabase.from('activity_log').insert({
+			organization_id: organizationId,
+			member_id: newMembership?.id ?? null,
+			actor_type: newMembership?.id ? 'member' : 'system',
+			action: 'signed_up',
+			entity_type: 'organization',
+			entity_id: organizationId,
+			metadata: {},
+		});
+
+		if (activityError) {
+			console.error('[activity] logging signed_up:', activityError);
+		}
+	}
+
 	const priceId = serverEnv.stripePriceId;
 
 	// Billing isn't configured yet — let them into the product without

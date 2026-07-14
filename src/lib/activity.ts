@@ -15,6 +15,17 @@ import type { Json } from '@/types/database';
 // entity_id, metadata, created_at) with RLS already in place -- nothing
 // in this codebase had ever written to or read from it before this
 // phase. No migration, no new table.
+//
+// Phase 17H -- this same table is also the activation funnel. Rather than
+// standing up a separate analytics vendor or event table, the funnel a
+// stranger walks (signup -> connect a source -> reach a first insight) is
+// just three of these actions in order: 'signed_up' (added in Phase 17,
+// logged once in ensureWorkspace when a workspace is first created),
+// 'synced_signals' (a source was connected and data flowed in), and
+// 'created_baseline_report' (the first real health report existed -- the
+// point a "first insight" became a durable result). Querying
+// `activity_log` grouped by action and organization_id is the whole funnel
+// report; no new tracking surface was built.
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -25,6 +36,7 @@ type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
  * at a time, rather than accumulating ad hoc log lines.
  */
 export type ActivityAction =
+	| 'signed_up'
 	| 'connected_source'
 	| 'synced_signals'
 	| 'created_baseline_report'
@@ -121,6 +133,8 @@ export function describeActivity(entry: ActivityEntry): string {
 	const who = entry.memberName ?? (entry.actorType === 'system' ? 'Sentinel' : 'Someone');
 
 	switch (entry.action) {
+		case 'signed_up':
+			return `${who} created the workspace`;
 		case 'connected_source':
 			return `${who} connected SupportOS`;
 		case 'synced_signals': {
