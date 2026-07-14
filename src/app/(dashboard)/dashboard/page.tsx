@@ -15,6 +15,7 @@ import { ConnectedSourcesCard } from '@/components/dashboard/connected-sources-c
 import { OnboardingBanner } from '@/components/dashboard/onboarding-banner';
 import { FirstInsightCard } from '@/components/dashboard/first-insight-card';
 import { CustomerConversationsCard } from '@/components/dashboard/customer-conversations-card';
+import { EmergingRisksCard } from '@/components/dashboard/emerging-risks-card';
 import { EmptyState } from '@/components/dashboard/empty-state';
 import { SectionHeading } from '@/components/dashboard/section-heading';
 
@@ -24,6 +25,8 @@ import { getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
 import { getSignalsOverview, getConnectedSourcesOverview } from '@/lib/signals/data';
 import { buildConversationSummary } from '@/lib/signals/conversations';
 import { buildFirstInsightSummary } from '@/lib/signals/insight';
+import { buildEmergingRisks } from '@/lib/signals/risks';
+import { detectEmergingTrends } from '@/lib/signals/trends';
 
 export default async function DashboardPage() {
 	const [data, signalsOverview, connectedSources] = await Promise.all([
@@ -66,6 +69,10 @@ export default async function DashboardPage() {
 
 	const signals = signalsOverview?.signals ?? [];
 	const patterns = signalsOverview?.patterns ?? [];
+	// Phase 14: Signals -> trend engine -> EmergingRisk. Deterministic, no AI --
+	// computed fresh on every render from the same signals/improvementEvents
+	// already loaded for the rest of the page, never a separate fetch.
+	const emergingRisks = buildEmergingRisks(detectEmergingTrends(signals), improvementEvents);
 
 	// Phase 10C: a genuinely brand-new org (never synced anything, never had
 	// a report) gets a calm, single next step instead of a wall of zeroes.
@@ -93,8 +100,8 @@ export default async function DashboardPage() {
 	return (
 		<>
 			<DashboardHeader
-				title="Executive Health"
-				description="Daily operational intelligence across your customer support ecosystem."
+				title="Sentinel"
+				description="Your operation at a glance."
 			/>
 
 			<div className="space-y-10 px-6 py-8 lg:px-8">
@@ -120,6 +127,11 @@ export default async function DashboardPage() {
 				<section className="space-y-3">
 					<SectionHeading eyebrow="What changed?" description="Since your last report" />
 					<TrendSummaryCard trend={trend} />
+				</section>
+
+				<section className="space-y-3">
+					<SectionHeading eyebrow="What is becoming a problem?" description="Increasing before it's critical" />
+					<EmergingRisksCard risks={emergingRisks} />
 				</section>
 
 				<section className="space-y-3">
