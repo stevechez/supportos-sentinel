@@ -22,17 +22,19 @@ import { SectionHeading } from '@/components/dashboard/section-heading';
 import { Activity, AlertTriangle, Building2, ClipboardList } from 'lucide-react';
 
 import { getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
-import { getSignalsOverview, getConnectedSourcesOverview } from '@/lib/signals/data';
+import { getSignalsOverview, getConnectedSourcesOverview, getResolutionOverview } from '@/lib/signals/data';
 import { buildConversationSummary } from '@/lib/signals/conversations';
 import { buildFirstInsightSummary } from '@/lib/signals/insight';
 import { buildEmergingRisks } from '@/lib/signals/risks';
+import { buildResolutionMetrics } from '@/lib/signals/resolution';
 import { detectEmergingTrends } from '@/lib/signals/trends';
 
 export default async function DashboardPage() {
-	const [data, signalsOverview, connectedSources] = await Promise.all([
+	const [data, signalsOverview, connectedSources, resolutionOverview] = await Promise.all([
 		getExecutiveDashboardData(),
 		getSignalsOverview(),
 		getConnectedSourcesOverview(),
+		getResolutionOverview(),
 	]);
 
 	if (!data) {
@@ -201,8 +203,12 @@ export default async function DashboardPage() {
 							</div>
 						</div>
 
-						{/* Customer Conversations (Phase 11F) */}
-						<CustomerConversationsCard summary={buildConversationSummary(signals, patterns)} />
+						{/* Customer Conversations (Phase 11F), extended with the resolution loop (Phase 15C/D) */}
+						<CustomerConversationsCard
+							summary={buildConversationSummary(signals, patterns)}
+							resolution={resolutionOverview?.metrics ?? buildResolutionMetrics([])}
+							frequentQuestions={resolutionOverview?.frequentQuestions ?? []}
+						/>
 
 						{/* Operational Signals (Phase 8) + Connected Sources (Phase 9) */}
 						<div className="grid gap-6 lg:grid-cols-3">
