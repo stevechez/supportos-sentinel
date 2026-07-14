@@ -11,12 +11,15 @@ import { ExecutiveTimelineCard } from '@/components/dashboard/executive-timeline
 import { RecentImprovementsCard } from '@/components/dashboard/recent-improvements-card';
 import { OperationalSignalsCard } from '@/components/dashboard/operational-signals-card';
 import { ConnectedSourcesCard } from '@/components/dashboard/connected-sources-card';
+import { OnboardingBanner } from '@/components/dashboard/onboarding-banner';
+import { FirstInsightCard } from '@/components/dashboard/first-insight-card';
 import { EmptyState } from '@/components/dashboard/empty-state';
 
 import { Activity, AlertTriangle, Building2, ClipboardList } from 'lucide-react';
 
 import { getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
 import { getSignalsOverview, getConnectedSourcesOverview } from '@/lib/signals/data';
+import { buildFirstInsightSummary } from '@/lib/signals/insight';
 
 export default async function DashboardPage() {
 	const [data, signalsOverview, connectedSources] = await Promise.all([
@@ -56,6 +59,32 @@ export default async function DashboardPage() {
 		timeline,
 	} = data;
 
+	const signals = signalsOverview?.signals ?? [];
+	const patterns = signalsOverview?.patterns ?? [];
+
+	// Phase 10C: a genuinely brand-new org (never synced anything, never had
+	// a report) gets a calm, single next step instead of a wall of zeroes.
+	if (signals.length === 0 && counts.healthReports === 0) {
+		return (
+			<>
+				<DashboardHeader
+					title="Executive Health"
+					description="Daily operational intelligence across your customer support ecosystem."
+				/>
+
+				<div className="space-y-8 px-6 py-8 lg:px-8">
+					<OnboardingBanner />
+					<ConnectedSourcesCard sources={connectedSources ?? []} />
+				</div>
+			</>
+		);
+	}
+
+	// Phase 10D/E/F: signals exist but Sentinel has never produced a report
+	// yet -- the "first insight" moment, before the org has a baseline.
+	const showFirstInsight = counts.healthReports === 0;
+	const isBaseline = counts.healthReports === 1;
+
 	return (
 		<>
 			<DashboardHeader
@@ -64,6 +93,8 @@ export default async function DashboardPage() {
 			/>
 
 			<div className="space-y-8 px-6 py-8 lg:px-8">
+				{showFirstInsight && <FirstInsightCard summary={buildFirstInsightSummary(signals, patterns)} />}
+
 				{/* Trend */}
 				<TrendSummaryCard trend={trend} />
 
@@ -72,6 +103,7 @@ export default async function DashboardPage() {
 					score={healthScore.score}
 					previousScore={healthScore.previousScore}
 					categories={healthScore.categories}
+					isBaseline={isBaseline}
 				/>
 
 				{/* KPI Cards */}
@@ -129,10 +161,7 @@ export default async function DashboardPage() {
 				{/* Operational Signals (Phase 8) + Connected Sources (Phase 9) */}
 				<div className="grid gap-6 lg:grid-cols-3">
 					<div className="lg:col-span-2">
-						<OperationalSignalsCard
-							signals={signalsOverview?.signals ?? []}
-							patterns={signalsOverview?.patterns ?? []}
-						/>
+						<OperationalSignalsCard signals={signals} patterns={patterns} />
 					</div>
 
 					<ConnectedSourcesCard sources={connectedSources ?? []} />

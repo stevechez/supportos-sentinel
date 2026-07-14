@@ -2,15 +2,18 @@ import { serverEnv } from '@supportos/config/env/server';
 
 import type { DashboardMetrics } from '@/lib/dashboard/analysis';
 import type { ImprovementRecord } from '@/lib/dashboard/improvement';
+import type { FirstInsightSummary } from '@/lib/signals/insight';
 import type { SignalPattern } from '@/lib/signals/patterns';
 
 import {
 	buildExecutiveBriefPrompt,
 	buildImprovementExplanationPrompt,
 	buildSignalPatternExplanationPrompt,
+	buildWelcomeBriefPrompt,
 	EXECUTIVE_ANALYST_SYSTEM_PROMPT,
 	IMPROVEMENT_ADVISOR_SYSTEM_PROMPT,
 	SIGNAL_PATTERN_SYSTEM_PROMPT,
+	WELCOME_BRIEF_SYSTEM_PROMPT,
 } from './prompts';
 import {
 	AiUnavailableError,
@@ -20,6 +23,8 @@ import {
 	type SentinelInsight,
 	type SignalPatternExplanation,
 	type SignalPatternInsight,
+	type WelcomeBrief,
+	type WelcomeInsight,
 } from './types';
 
 // ---------------------------------------------------------------------------
@@ -114,6 +119,21 @@ export function buildSignalPatternInsight(pattern: SignalPattern): SignalPattern
 		title: pattern.title,
 		recurrenceCount: pattern.recurrenceCount,
 		daySpan: pattern.daySpan,
+	};
+}
+
+/**
+ * Pure transform from a Phase 10D FirstInsightSummary (already computed
+ * over Phase 8's signals/patterns) into the Phase 10F WelcomeInsight. No
+ * calculation happens here -- the counts and top pattern title already
+ * exist on `summary`.
+ */
+export function buildWelcomeInsight(summary: FirstInsightSummary): WelcomeInsight {
+	return {
+		signalCount: summary.signalCount,
+		recurringIssueCount: summary.recurringIssueCount,
+		knowledgeGapCount: summary.knowledgeGapCount,
+		topIssueTitle: summary.topPattern?.title ?? null,
 	};
 }
 
@@ -246,6 +266,19 @@ function isSignalPatternExplanation(value: unknown): value is SignalPatternExpla
 	return typeof candidate.summary === 'string' && candidate.summary.trim().length > 0;
 }
 
+function isWelcomeBrief(value: unknown): value is WelcomeBrief {
+	if (!value || typeof value !== 'object') {
+		return false;
+	}
+	const candidate = value as Record<string, unknown>;
+	return (
+		typeof candidate.summary === 'string' &&
+		candidate.summary.trim().length > 0 &&
+		typeof candidate.highestOpportunity === 'string' &&
+		candidate.highestOpportunity.trim().length > 0
+	);
+}
+
 /**
  * Calls the configured model to turn a SentinelInsight into an
  * ExecutiveBrief. Never throws a raw/unexpected error -- schema-invalid
@@ -307,4 +340,19 @@ export async function generateSignalPatternExplanation(
 	}
 
 	return { summary: parsed.summary };
+}
+
+/**
+ * Phase 10F: calls the configured model to write a brand-new customer's
+ * welcome brief from their first sync. Same failure-handling discipline
+ * as every other generate* function here.
+ */
+export async function generateWelcomeBrief(insight: WelcomeInsight): Promise<WelcomeBrief> {
+	const parsed = await callAnthropicForJson(WELCOME_BRIEF_SYSTEM_PROMPT, buildWelcomeBriefPrompt(insight));
+
+	if (!isWelcomeBrief(parsed)) {
+		throw new AiUnavailableError('The AI service returned an unexpected response shape.');
+	}
+
+	return { summary: parsed.summary, highestOpportunity: parsed.highestOpportunity };
 }

@@ -2,8 +2,9 @@ import { createClient } from '@supportos/auth/server';
 
 import { getCurrentMembership } from '@/lib/dashboard/dashboard';
 
+import { getConnections } from './connections';
 import { detectSignalPatterns, type SignalPattern } from './patterns';
-import { CONNECTED_SIGNAL_SOURCES, SIGNAL_SOURCE_LABELS, type SignalSource } from './sources';
+import { SIGNAL_SOURCE_LABELS, type SignalSource } from './sources';
 import type { OperationalSignal } from './types';
 
 export interface SignalsOverview {
@@ -11,10 +12,18 @@ export interface SignalsOverview {
 	patterns: SignalPattern[];
 }
 
-/** One row in the Phase 9D "Connected Sources" card. */
+/**
+ * One row in the Phase 10B "Connected Sources" card. Broader than a raw
+ * sentinel_connections row -- covers manual entry (always available, no
+ * connection row needed) and "coming soon" providers (no row, no action)
+ * alongside real connections.
+ */
+export type ConnectedSourceState = 'connected' | 'available' | 'coming_soon';
+
 export interface ConnectedSourceStatus {
 	source: SignalSource;
 	label: string;
+	state: ConnectedSourceState;
 	signalCount: number;
 	/** Null if this source has never produced a signal for this org yet. */
 	lastSyncedAt: string | null;
@@ -76,12 +85,13 @@ export async function getSignalsOverview(): Promise<SignalsOverview | null> {
 }
 
 /**
- * Phase 9D: "Sentinel is watching" -- a per-source summary (signal count +
- * last time this source produced a signal) for the sources that actually
- * have a wired-up ingestion path today (manual entry, the SupportOS
- * connector). Built from the same sentinel_signals rows everything else
- * reads, grouped in application code rather than a new view -- there's
- * only a handful of sources, no need for a database aggregate.
+ * Phase 9D / 10B: "Sentinel is watching" -- one row per source the
+ * Connected Sources card shows. Manual entry is always "available" (it's
+ * just a form, no connection needed). SupportOS reflects a real
+ * sentinel_connections row (Phase 10A) -- "connected" once the org has
+ * clicked Connect/Sync at least once, otherwise it's the thing the
+ * onboarding flow prompts for. CSV is shown as "coming soon" per the
+ * handoff -- no row, no action, just visibility into what's next.
  */
 export async function getConnectedSourcesOverview(): Promise<ConnectedSourceStatus[] | null> {
 	const membership = await getCurrentMembership();
@@ -91,19 +101,20 @@ export async function getConnectedSourcesOverview(): Promise<ConnectedSourceStat
 
 	const supabase = await createClient();
 
-	const { data, error } = await supabase
-		.from('sentinel_signals')
-		.select('source, created_at')
-		.eq('organization_id', membership.organizationId);
+	const [{ data: signalRows, error: signalError }, connections] = await Promise.all([
+		supabase
+			.from('sentinel_signals')
+			.select('source, created_at')
+			.eq('organization_id', membership.organizationId),
+		getConnections(supabase, membership.organizationId),
+	]);
 
-	if (error) {
-		console.error('[signals] fetching connected sources:', error);
+	if (signalError) {
+		console.error('[signals] fetching connected sources:', signalError);
 	}
 
-	const rows = data ?? [];
 	const bySource = new Map<string, { count: number; lastSyncedAt: string | null }>();
-
-	for (const row of rows) {
+	for (const row of signalRows ?? []) {
 		const existing = bySource.get(row.source) ?? { count: 0, lastSyncedAt: null };
 		existing.count += 1;
 		if (!existing.lastSyncedAt || row.created_at > existing.lastSyncedAt) {
@@ -112,13 +123,31 @@ export async function getConnectedSourcesOverview(): Promise<ConnectedSourceStat
 		bySource.set(row.source, existing);
 	}
 
-	return CONNECTED_SIGNAL_SOURCES.map(source => {
-		const stats = bySource.get(source);
-		return {
-			source,
-			label: SIGNAL_SOURCE_LABELS[source],
-			signalCount: stats?.count ?? 0,
-			lastSyncedAt: stats?.lastSyncedAt ?? null,
-		};
-	});
+	const manualStats = bySource.get('manual');
+	const supportOsConnection = connections.get('supportos');
+	const supportOsStats = bySource.get('supportos');
+
+	return [
+		{
+			source: 'manual',
+			label: SIGNAL_SOURCE_LABELS.manual,
+			state: 'available',
+			signalCount: manualStats?.count ?? 0,
+			lastSyncedAt: manualStats?.lastSyncedAt ?? null,
+		},
+		{
+			source: 'supportos',
+			label: SIGNAL_SOURCE_LABELS.supportos,
+			state: supportOsConnection?.status === 'connected' ? 'connected' : 'available',
+			signalCount: supportOsStats?.count ?? 0,
+			lastSyncedAt: supportOsConnection?.lastSyncAt ?? supportOsStats?.lastSyncedAt ?? null,
+		},
+		{
+			source: 'csv',
+			label: SIGNAL_SOURCE_LABELS.csv,
+			state: 'coming_soon',
+			signalCount: 0,
+			lastSyncedAt: null,
+		},
+	];
 }

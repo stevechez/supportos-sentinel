@@ -4,7 +4,8 @@ import { revalidatePath } from 'next/cache';
 
 import { createClient } from '@supportos/auth/server';
 
-import { getCurrentMembership } from './dashboard';
+import { BaselineError, createBaselineReport } from './baseline';
+import { getCurrentMembership, getExecutiveDashboardData } from './dashboard';
 import {
 	FINDING_STATUS_ORDER,
 	RECOMMENDATION_STATUS_ORDER,
@@ -64,6 +65,41 @@ export async function updateFindingStatusAction(
 
 	revalidatePath('/dashboard');
 	return { ok: true };
+}
+
+/**
+ * Server Action behind "Establish Baseline" (Phase 10E). Only meaningful
+ * before the org has any report yet -- creates one from the metrics the
+ * dashboard is already showing, which becomes report #1 and therefore the
+ * baseline every later report is compared against.
+ */
+export async function createBaselineReportAction(): Promise<MutationResult> {
+	const membership = await getCurrentMembership();
+	if (!membership) {
+		return { ok: false, error: "We couldn't verify your organization. Please try again." };
+	}
+
+	const metrics = await getExecutiveDashboardData();
+	if (!metrics) {
+		return { ok: false, error: "We couldn't find your organization's data." };
+	}
+
+	if (metrics.counts.healthReports > 0) {
+		return { ok: false, error: 'A baseline has already been established.' };
+	}
+
+	try {
+		const supabase = await createClient();
+		await createBaselineReport(supabase, membership.organizationId, metrics);
+		revalidatePath('/dashboard');
+		return { ok: true };
+	} catch (error) {
+		if (error instanceof BaselineError) {
+			return { ok: false, error: error.message };
+		}
+		console.error('[dashboard] establishing baseline:', error);
+		return { ok: false, error: GENERIC_ERROR };
+	}
 }
 
 /**

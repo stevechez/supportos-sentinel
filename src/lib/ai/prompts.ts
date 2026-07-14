@@ -1,4 +1,4 @@
-import type { ImprovementInsight, SentinelInsight, SignalPatternInsight } from './types';
+import type { ImprovementInsight, SentinelInsight, SignalPatternInsight, WelcomeInsight } from './types';
 
 // Prompt design (Phase 6 Workstream 4). The AI is cast as an operations
 // advisor writing for a company executive, not a general-purpose data
@@ -130,5 +130,42 @@ export function buildSignalPatternExplanationPrompt(insight: SignalPatternInsigh
 		'Explain what this pattern likely means for the business.',
 		'',
 		SIGNAL_PATTERN_RESPONSE_SCHEMA_INSTRUCTIONS,
+	].join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// Phase 10F -- the AI Executive Welcome Brief.
+//
+// Shown once, right after a brand-new customer's first sync. Same
+// boundary discipline as every prompt above: the model only receives
+// counts and a title src/lib/signals/insight.ts already computed
+// deterministically. It explains the customer's first data, it does not
+// discover it.
+// ---------------------------------------------------------------------------
+
+export const WELCOME_BRIEF_SYSTEM_PROMPT =
+	'You are an operations advisor for SupportOS Sentinel, writing the ' +
+	"first message a brand-new customer sees after connecting their " +
+	"support data. Be warm but concise, and lead with what Sentinel " +
+	'already found -- this is meant to feel like an immediate "aha ' +
+	"moment,\" not a generic welcome. You only know the counts and title " +
+	'provided -- never invent findings, numbers, or facts that are not ' +
+	'present in them.';
+
+const WELCOME_BRIEF_RESPONSE_SCHEMA_INSTRUCTIONS = `Respond with ONLY a single JSON object, no markdown fences, no commentary before or after it, matching exactly this shape:
+{
+  "summary": string (2-3 sentences, welcoming but concrete, describing what Sentinel found in this first sync),
+  "highestOpportunity": string (one short phrase naming the single biggest opportunity, e.g. "Improve password reset self-service documentation")
+}`;
+
+export function buildWelcomeBriefPrompt(insight: WelcomeInsight): string {
+	return [
+		"Here is a new customer's first sync into Sentinel:",
+		'',
+		JSON.stringify(insight, null, 2),
+		'',
+		'Write their welcome brief.',
+		'',
+		WELCOME_BRIEF_RESPONSE_SCHEMA_INSTRUCTIONS,
 	].join('\n');
 }

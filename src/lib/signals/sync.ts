@@ -1,6 +1,7 @@
 import type { createClient } from '@supportos/auth/server';
 
 import { deriveSupportOsSignals, type SupportOsTicket } from './adapters/supportos';
+import { upsertConnectionSynced } from './connections';
 import { ingestSignalBatch, SignalIngestError } from './ingest';
 import type { OperationalSignal } from './types';
 
@@ -20,11 +21,14 @@ export class SignalSyncError extends Error {
 const TICKET_SYNC_LIMIT = 200;
 
 /**
- * Phase 9B: pulls this organization's recent SupportOS tickets, runs them
- * through the deterministic adapter, and upserts the resulting signals.
- * Manually triggered by the "Sync Now" button (Phase 9D) -- the handoff is
- * explicit that real-time streaming infrastructure is out of scope for
- * this phase, so this is a pull, not a webhook.
+ * Phase 9B, extended in Phase 10A: pulls this organization's recent
+ * SupportOS tickets, runs them through the deterministic adapter, and
+ * upserts the resulting signals -- then stamps the sentinel_connections
+ * row so "Connected Sources" reflects the sync. This one function serves
+ * both the first-ever "Connect SupportOS" click (Phase 10C) and every
+ * later "Sync Now" -- there's no separate connect step, connecting *is*
+ * syncing once. Manually triggered, not a webhook -- real-time streaming
+ * infrastructure is explicitly out of scope for these phases.
  */
 export async function syncSupportOsSignals(
 	supabase: SupabaseClient,
@@ -57,6 +61,7 @@ export async function syncSupportOsSignals(
 
 	try {
 		const newSignals = await ingestSignalBatch(supabase, organizationId, rawSignals);
+		await upsertConnectionSynced(supabase, organizationId, 'supportos');
 		return { newSignals };
 	} catch (error) {
 		if (error instanceof SignalIngestError) {

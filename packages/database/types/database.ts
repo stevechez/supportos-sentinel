@@ -1063,6 +1063,41 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			sentinel_connections: {
+				Row: {
+					created_at: string;
+					id: string;
+					last_sync_at: string | null;
+					organization_id: string;
+					provider: string;
+					status: string;
+				};
+				Insert: {
+					created_at?: string;
+					id?: string;
+					last_sync_at?: string | null;
+					organization_id: string;
+					provider: string;
+					status?: string;
+				};
+				Update: {
+					created_at?: string;
+					id?: string;
+					last_sync_at?: string | null;
+					organization_id?: string;
+					provider?: string;
+					status?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'sentinel_connections_organization_id_fkey';
+						columns: ['organization_id'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					},
+				];
+			};
 			sentinel_findings: {
 				Row: {
 					business_impact: string | null;

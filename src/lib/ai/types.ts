@@ -96,6 +96,27 @@ export interface SignalPatternExplanation {
 }
 
 /**
+ * WelcomeInsight -- the Phase 10F input contract. A pure transform over
+ * src/lib/signals/insight.ts's FirstInsightSummary, itself a pure
+ * transform over Phase 8's already-detected signal patterns. The AI never
+ * sees raw signals and never decides what counts as a recurring issue --
+ * it only ever explains counts and a title the deterministic engine
+ * already produced.
+ */
+export interface WelcomeInsight {
+	signalCount: number;
+	recurringIssueCount: number;
+	knowledgeGapCount: number;
+	topIssueTitle: string | null;
+}
+
+/** Phase 10F's output contract -- same small, typed discipline as every other AI output here. */
+export interface WelcomeBrief {
+	summary: string;
+	highestOpportunity: string;
+}
+
+/**
  * Thrown for any failure in the AI boundary -- missing configuration,
  * network failure, non-200 response, malformed/invalid JSON. Always carries
  * a generic, user-safe message; the real cause is attached for server-side

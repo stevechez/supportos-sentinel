@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCircle2, RefreshCw, Waves } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, RefreshCw, Waves } from 'lucide-react';
 
 import { Button } from '@supportos/ui/components/button';
 
@@ -13,9 +13,10 @@ interface ConnectedSourcesCardProps {
 	sources: ConnectedSourceStatus[];
 }
 
-// Phase 9D: "the user should understand Sentinel is watching." A status
-// summary, not a settings page -- there is exactly one action here (sync
-// SupportOS now), no OAuth flow, no per-source configuration.
+// Phase 9D / 10B: "the user should understand Sentinel is watching." A
+// status summary, not a settings page or a marketplace -- connect
+// SupportOS, sync it, see what's coming next (CSV). No OAuth flow, no
+// per-source configuration, no "Add Source" grid of a dozen logos.
 export function ConnectedSourcesCard({ sources }: ConnectedSourcesCardProps) {
 	return (
 		<div className="rounded-xl border bg-card shadow-sm">
@@ -60,17 +61,34 @@ function SourceRow({ source }: { source: ConnectedSourceStatus }) {
 		});
 	}
 
+	const isComingSoon = source.state === 'coming_soon';
+
 	return (
 		<div className="flex flex-col gap-2 p-5 sm:flex-row sm:items-center sm:justify-between">
 			<div className="flex items-center gap-3">
-				<CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" aria-hidden="true" />
+				<StatusIcon state={source.state} />
 				<div>
-					<h3 className="text-sm font-medium text-foreground">{source.label}</h3>
-					<p className="mt-0.5 text-xs text-muted-foreground">
-						{source.signalCount} signal{source.signalCount === 1 ? '' : 's'} received
-						{source.lastSyncedAt && <> · Last sync {relativeTime(source.lastSyncedAt)}</>}
-						{!source.lastSyncedAt && <> · Not synced yet</>}
-					</p>
+					<div className="flex items-center gap-2">
+						<h3 className="text-sm font-medium text-foreground">{source.label}</h3>
+						{isComingSoon && (
+							<span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+								Coming Soon
+							</span>
+						)}
+					</div>
+
+					{!isComingSoon && (
+						<p className="mt-0.5 text-xs text-muted-foreground">
+							{source.state === 'connected' ? 'Connected' : 'Not connected'}
+							{' · '}
+							{source.signalCount} signal{source.signalCount === 1 ? '' : 's'} received
+							{source.lastSyncedAt && <> · Last sync {relativeTime(source.lastSyncedAt)}</>}
+						</p>
+					)}
+					{isComingSoon && (
+						<p className="mt-0.5 text-xs text-muted-foreground">Import a spreadsheet of tickets directly.</p>
+					)}
+
 					{error && <p className="mt-1 text-xs text-destructive">{error}</p>}
 					{lastResult && !error && (
 						<p className="mt-1 text-xs text-muted-foreground">{lastResult}</p>
@@ -81,11 +99,21 @@ function SourceRow({ source }: { source: ConnectedSourceStatus }) {
 			{source.source === 'supportos' && (
 				<Button size="xs" variant="outline" onClick={handleSync} disabled={isPending}>
 					<RefreshCw className={`h-3 w-3 ${isPending ? 'animate-spin' : ''}`} aria-hidden="true" />
-					{isPending ? 'Syncing…' : 'Sync Now'}
+					{isPending ? 'Syncing…' : source.state === 'connected' ? 'Sync Now' : 'Connect SupportOS'}
 				</Button>
 			)}
 		</div>
 	);
+}
+
+function StatusIcon({ state }: { state: ConnectedSourceStatus['state'] }) {
+	if (state === 'coming_soon') {
+		return <Clock className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />;
+	}
+	if (state === 'connected') {
+		return <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" aria-hidden="true" />;
+	}
+	return <Circle className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />;
 }
 
 function relativeTime(iso: string): string {

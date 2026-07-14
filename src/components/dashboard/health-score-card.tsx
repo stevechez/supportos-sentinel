@@ -9,6 +9,8 @@ interface HealthScoreCardProps {
 	score?: number;
 	previousScore?: number;
 	categories?: HealthScoreCategory[];
+	/** Phase 10E: true when this org's only report ever is the one this score comes from -- i.e. this score *is* the baseline. */
+	isBaseline?: boolean;
 }
 
 const RADIUS = 54;
@@ -18,6 +20,7 @@ export function HealthScoreCard({
 	score = 82,
 	previousScore = 86,
 	categories = [],
+	isBaseline = false,
 }: HealthScoreCardProps) {
 	const delta = score - previousScore;
 	const isPositive = delta >= 0;
@@ -80,18 +83,25 @@ export function HealthScoreCard({
 							</span>
 						</div>
 
-						<div
-							className={`flex items-center gap-2 text-sm font-medium ${
-								isPositive ? 'text-emerald-400' : 'text-destructive'
-							}`}
-						>
-							{isPositive ? (
-								<ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-							) : (
-								<ArrowDownRight className="h-4 w-4" aria-hidden="true" />
-							)}
-							{Math.abs(delta)} points since last report
-						</div>
+						{isBaseline ? (
+							<div className="text-sm font-medium text-primary">
+								Baseline created: {score}. Future improvements will be measured against this
+								score.
+							</div>
+						) : (
+							<div
+								className={`flex items-center gap-2 text-sm font-medium ${
+									isPositive ? 'text-emerald-400' : 'text-destructive'
+								}`}
+							>
+								{isPositive ? (
+									<ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+								) : (
+									<ArrowDownRight className="h-4 w-4" aria-hidden="true" />
+								)}
+								{Math.abs(delta)} points since last report
+							</div>
+						)}
 					</div>
 				</div>
 

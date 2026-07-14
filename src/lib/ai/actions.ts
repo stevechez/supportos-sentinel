@@ -3,6 +3,8 @@
 import { createClient } from '@supportos/auth/server';
 
 import { getCurrentMembership, getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
+import { getSignalsOverview } from '@/lib/signals/data';
+import { buildFirstInsightSummary } from '@/lib/signals/insight';
 import { buildPattern, MIN_RECURRENCE } from '@/lib/signals/patterns';
 import type { OperationalSignal } from '@/lib/signals/types';
 
@@ -10,15 +12,18 @@ import {
 	buildImprovementInsight,
 	buildSentinelInsight,
 	buildSignalPatternInsight,
+	buildWelcomeInsight,
 	generateExecutiveBrief,
 	generateImprovementExplanation,
 	generateSignalPatternExplanation,
+	generateWelcomeBrief,
 } from './analyst';
 import {
 	AiUnavailableError,
 	type ExecutiveBrief,
 	type ImprovementExplanation,
 	type SignalPatternExplanation,
+	type WelcomeBrief,
 } from './types';
 
 export type GenerateExecutiveBriefResult =
@@ -31,6 +36,10 @@ export type GenerateImprovementExplanationResult =
 
 export type ExplainSignalPatternResult =
 	| { ok: true; explanation: SignalPatternExplanation }
+	| { ok: false; error: string };
+
+export type GenerateWelcomeBriefResult =
+	| { ok: true; brief: WelcomeBrief }
 	| { ok: false; error: string };
 
 /**
@@ -180,5 +189,39 @@ export async function explainSignalPatternAction(
 
 		console.error('[ai] unexpected error explaining signal pattern:', error);
 		return { ok: false, error: 'Something went wrong explaining this pattern. Please try again.' };
+	}
+}
+
+/**
+ * Server Action behind the AI Welcome Brief (Phase 10F), shown once a
+ * brand-new org has signals but no report yet. Rebuilds the same
+ * FirstInsightSummary the deterministic First Insight Card already shows
+ * (getSignalsOverview -> buildFirstInsightSummary) rather than trusting
+ * anything from the client, then hands only that summary to the AI.
+ */
+export async function generateWelcomeBriefAction(): Promise<GenerateWelcomeBriefResult> {
+	try {
+		const membership = await getCurrentMembership();
+		if (!membership) {
+			return { ok: false, error: "We couldn't find your organization's data." };
+		}
+
+		const overview = await getSignalsOverview();
+		if (!overview) {
+			return { ok: false, error: "We couldn't find your organization's data." };
+		}
+
+		const summary = buildFirstInsightSummary(overview.signals, overview.patterns);
+		const insight = buildWelcomeInsight(summary);
+		const brief = await generateWelcomeBrief(insight);
+
+		return { ok: true, brief };
+	} catch (error) {
+		if (error instanceof AiUnavailableError) {
+			return { ok: false, error: error.message };
+		}
+
+		console.error('[ai] unexpected error generating welcome brief:', error);
+		return { ok: false, error: 'Something went wrong generating your welcome brief. Please try again.' };
 	}
 }
