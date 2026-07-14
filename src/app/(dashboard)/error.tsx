@@ -23,12 +23,13 @@ export default function DashboardError({
 				</div>
 
 				<h1 className="font-heading mt-6 text-2xl text-foreground">
-					Something went wrong
+					Sentinel could not load this page
 				</h1>
 
 				<p className="mt-3 text-sm leading-6 text-muted-foreground">
-					Sentinel hit an unexpected error loading this page. You can try
-					again, or head back to your overview.
+					Sentinel hit an unexpected error loading this page. Your data is
+					safe -- nothing was changed or lost. You can try again, or head
+					back to your overview.
 				</p>
 
 				<div className="mt-8 flex items-center justify-center gap-4">

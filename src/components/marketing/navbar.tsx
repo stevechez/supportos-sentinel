@@ -17,6 +17,7 @@ import {
 
 const links = [
 	{ href: '/products', label: 'Solutions' },
+	{ href: '/demo', label: 'See a sample' },
 	{ href: '/pricing', label: 'Pricing' },
 	{ href: '/resources', label: 'Resources' },
 ];

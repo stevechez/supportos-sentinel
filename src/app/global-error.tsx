@@ -39,7 +39,8 @@ export default function GlobalError({
 						</h1>
 
 						<p style={{ marginTop: '0.75rem', color: '#a1a1aa', fontSize: '0.875rem' }}>
-							Sentinel hit an unexpected error. Please try again.
+							Sentinel hit an unexpected error. Your data is safe -- nothing
+							was changed or lost. Please try again.
 						</p>
 
 						<button
