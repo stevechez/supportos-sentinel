@@ -1,0 +1,74 @@
+// The AI boundary's type contracts.
+//
+// Two directions of data cross this boundary, and both are structured,
+// typed, and small -- never raw database rows, never free-form blobs.
+//
+//   Sentinel Analysis Engine -> SentinelInsight -> AI Analyst -> ExecutiveBrief
+//
+// Code calculates (analysis.ts). AI explains (analyst.ts). This file only
+// describes the shapes on either side of that handoff.
+
+/** A single open finding, reduced to what an executive needs to hear about it. */
+export interface SentinelInsightFinding {
+	title: string;
+	severity: 'critical' | 'high' | 'medium';
+	/** Human-readable age, e.g. "21 days". Already formatted -- no raw dates. */
+	age: string;
+}
+
+/** A single pending recommendation, reduced the same way. */
+export interface SentinelInsightRecommendation {
+	title: string;
+	impact: 'High' | 'Medium' | 'Low';
+}
+
+/**
+ * SentinelInsight -- the "Insight Contract" from the Phase 6 handoff.
+ *
+ * This is the entire surface area the AI is allowed to see. It is built by
+ * a pure function (`buildSentinelInsight`) over the same DashboardMetrics
+ * the rest of the dashboard already renders -- nothing new is computed for
+ * the AI, and nothing raw (row ids, org ids, full finding descriptions) is
+ * exposed to it. If a field isn't in this interface, the AI never sees it.
+ */
+export interface SentinelInsight {
+	healthScore: number;
+	/** Signed, formatted trend string, e.g. "+7" or "-3", or null if fewer than two reports exist yet. */
+	trend: string | null;
+	criticalIssues: SentinelInsightFinding[];
+	recommendedActions: SentinelInsightRecommendation[];
+	/** Short business-impact sentences pulled from the top findings, already written for a human reader. */
+	businessImpact: string[];
+}
+
+/**
+ * ExecutiveBrief -- the AI's entire output contract. Deliberately not a
+ * free-form string: every field is a short string or a short list of short
+ * strings, so the UI can render it predictably and a malformed response is
+ * easy to detect and reject rather than silently displayed.
+ */
+export interface ExecutiveBrief {
+	summary: string;
+	improvements: string[];
+	risks: string[];
+	priorities: string[];
+}
+
+/**
+ * Thrown for any failure in the AI boundary -- missing configuration,
+ * network failure, non-200 response, malformed/invalid JSON. Always carries
+ * a generic, user-safe message; the real cause is attached for server-side
+ * logging only. Callers should catch this specifically and degrade
+ * gracefully (per Phase 6 Workstream 6) rather than let it propagate to an
+ * error boundary -- an AI failure should never make the rest of the
+ * dashboard unusable.
+ */
+export class AiUnavailableError extends Error {
+	constructor(message: string, cause?: unknown) {
+		super(message);
+		this.name = 'AiUnavailableError';
+		if (cause !== undefined) {
+			this.cause = cause;
+		}
+	}
+}
