@@ -135,6 +135,30 @@ export interface HistoricalAdvice {
 }
 
 /**
+ * EmergingRiskInsight -- the Phase 14E input contract. A pure transform
+ * over src/lib/signals/risks.ts's EmergingRisk, itself derived from
+ * src/lib/signals/trends.ts's deterministic period-over-period counting.
+ * The AI never detects a trend and never decides what counts as
+ * "emerging" -- it only ever explains evidence the deterministic engine
+ * already assembled, in the same "predict, don't speculate" spirit the
+ * Phase 14 handoff requires: everything here is a fact about the recent
+ * past, never a claim about the future.
+ */
+export interface EmergingRiskInsight {
+	title: string;
+	evidence: string[];
+	severity: string;
+	confidence: string;
+	/** Present only when Phase 12's memory layer found a similar already-resolved issue. */
+	priorResolution: { actionTaken: string; impactSummary: string } | null;
+}
+
+/** Phase 14E's output contract -- one grounded explanation, same discipline as every other AI output here. */
+export interface EmergingRiskExplanation {
+	explanation: string;
+}
+
+/**
  * Thrown for any failure in the AI boundary -- missing configuration,
  * network failure, non-200 response, malformed/invalid JSON. Always carries
  * a generic, user-safe message; the real cause is attached for server-side

@@ -7,14 +7,18 @@ import { findSimilarPastResolutions } from '@/lib/dashboard/memory';
 import { getSignalsOverview } from '@/lib/signals/data';
 import { buildFirstInsightSummary } from '@/lib/signals/insight';
 import { buildPattern, MIN_RECURRENCE } from '@/lib/signals/patterns';
+import { buildEmergingRisks } from '@/lib/signals/risks';
+import { detectEmergingTrends } from '@/lib/signals/trends';
 import type { OperationalSignal } from '@/lib/signals/types';
 
 import {
+	buildEmergingRiskInsight,
 	buildHistoricalInsight,
 	buildImprovementInsight,
 	buildSentinelInsight,
 	buildSignalPatternInsight,
 	buildWelcomeInsight,
+	generateEmergingRiskExplanation,
 	generateExecutiveBrief,
 	generateHistoricalAdvice,
 	generateImprovementExplanation,
@@ -23,6 +27,7 @@ import {
 } from './analyst';
 import {
 	AiUnavailableError,
+	type EmergingRiskExplanation,
 	type ExecutiveBrief,
 	type HistoricalAdvice,
 	type ImprovementExplanation,
@@ -48,6 +53,10 @@ export type GenerateWelcomeBriefResult =
 
 export type ExplainHistoricalMatchResult =
 	| { ok: true; advice: HistoricalAdvice }
+	| { ok: false; error: string };
+
+export type ExplainEmergingRiskResult =
+	| { ok: true; explanation: EmergingRiskExplanation }
 	| { ok: false; error: string };
 
 /**
@@ -274,5 +283,47 @@ export async function explainHistoricalMatchAction(
 
 		console.error('[ai] unexpected error explaining historical match:', error);
 		return { ok: false, error: 'Something went wrong retrieving this history. Please try again.' };
+	}
+}
+
+/**
+ * Server Action behind the opt-in "Explain" button on an Emerging Risk
+ * (Phase 14E). Takes only a risk title and rebuilds everything server-side
+ * -- signals, trend detection (trends.ts), and the EmergingRisk itself
+ * (risks.ts, including its Phase 12 memory check) -- rather than trusting
+ * any evidence or prior-resolution data from the client. Database facts ->
+ * trend engine -> EmergingRisk -> AI explanation.
+ */
+export async function explainEmergingRiskAction(riskTitle: string): Promise<ExplainEmergingRiskResult> {
+	try {
+		const membership = await getCurrentMembership();
+		if (!membership) {
+			return { ok: false, error: "We couldn't find your organization's data." };
+		}
+
+		const [overview, metrics] = await Promise.all([getSignalsOverview(), getExecutiveDashboardData()]);
+		if (!overview || !metrics) {
+			return { ok: false, error: "We couldn't find your organization's data." };
+		}
+
+		const trends = detectEmergingTrends(overview.signals);
+		const risks = buildEmergingRisks(trends, metrics.improvementEvents);
+		const risk = risks.find(candidate => candidate.title === riskTitle);
+
+		if (!risk) {
+			return { ok: false, error: 'This emerging risk is no longer available.' };
+		}
+
+		const insight = buildEmergingRiskInsight(risk);
+		const explanation = await generateEmergingRiskExplanation(insight);
+
+		return { ok: true, explanation };
+	} catch (error) {
+		if (error instanceof AiUnavailableError) {
+			return { ok: false, error: error.message };
+		}
+
+		console.error('[ai] unexpected error explaining emerging risk:', error);
+		return { ok: false, error: 'Something went wrong explaining this risk. Please try again.' };
 	}
 }

@@ -174,3 +174,54 @@ begin
 
   end loop;
 end $$;
+
+-- Phase 14: backfill for the trend acceleration engine.
+--
+-- Phase 8's manually-logged signals ("Customer couldnt reset password" and
+-- similar) all landed within minutes of each other, which is realistic for
+-- a demo but leaves nothing for src/lib/signals/trends.ts to compare --
+-- period-over-period growth needs signals spread across actual weeks, not
+-- a burst on one day. This backfills the same operational theme (password
+-- reset) across the last three weekly periods with a genuine accelerating
+-- shape (2 -> 3 -> current) so Phase 14's Emerging Risks card has a real
+-- trend to detect rather than a fabricated one -- these are ordinary
+-- ticket signals, not a pre-computed trend or finding.
+--
+-- Only runs for organizations that already have at least one manually
+-- logged password-reset signal (Phase 8's seed target) and haven't already
+-- received this backfill.
+do $$
+declare
+  org record;
+begin
+  for org in select id from organizations loop
+
+    if not exists (
+      select 1 from sentinel_signals
+      where organization_id = org.id and type = 'ticket' and title ilike '%password%'
+    ) then
+      continue;
+    end if;
+
+    if exists (
+      select 1 from sentinel_signals
+      where organization_id = org.id and title = 'password reset link expired'
+    ) then
+      continue;
+    end if;
+
+    insert into sentinel_signals (organization_id, type, source, title, content, severity, created_at)
+    values
+      (org.id, 'ticket', 'manual', 'customer cannot reset password', null, null, now() - interval '19 days'),
+      (org.id, 'ticket', 'manual', 'password reset link not working', null, null, now() - interval '17 days'),
+      (org.id, 'ticket', 'manual', 'customer locked out after password reset', null, null, now() - interval '11 days'),
+      (org.id, 'ticket', 'manual', 'password reset email never arrived', null, null, now() - interval '10 days'),
+      (org.id, 'ticket', 'manual', 'customer forgot password again', null, null, now() - interval '9 days'),
+      (org.id, 'ticket', 'manual', 'password reset confusion', null, null, now() - interval '8 days'),
+      (org.id, 'ticket', 'manual', 'password reset link expired', null, null, now() - interval '3 days'),
+      (org.id, 'ticket', 'manual', 'customer cannot complete password reset', null, null, now() - interval '2 days'),
+      (org.id, 'ticket', 'manual', 'password reset instructions unclear', null, null, now() - interval '1 days'),
+      (org.id, 'ticket', 'manual', 'another password reset failure', null, null, now() - interval '12 hours');
+
+  end loop;
+end $$;

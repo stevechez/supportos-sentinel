@@ -3,15 +3,18 @@ import { serverEnv } from '@supportos/config/env/server';
 import type { DashboardMetrics } from '@/lib/dashboard/analysis';
 import type { ImprovementRecord } from '@/lib/dashboard/improvement';
 import type { SimilarResolution } from '@/lib/dashboard/memory';
+import type { EmergingRisk } from '@/lib/signals/risks';
 import type { FirstInsightSummary } from '@/lib/signals/insight';
 import type { SignalPattern } from '@/lib/signals/patterns';
 
 import {
+	buildEmergingRiskExplanationPrompt,
 	buildExecutiveBriefPrompt,
 	buildHistoricalAdvicePrompt,
 	buildImprovementExplanationPrompt,
 	buildSignalPatternExplanationPrompt,
 	buildWelcomeBriefPrompt,
+	EMERGING_RISK_ADVISOR_SYSTEM_PROMPT,
 	EXECUTIVE_ANALYST_SYSTEM_PROMPT,
 	HISTORICAL_ADVISOR_SYSTEM_PROMPT,
 	IMPROVEMENT_ADVISOR_SYSTEM_PROMPT,
@@ -20,6 +23,8 @@ import {
 } from './prompts';
 import {
 	AiUnavailableError,
+	type EmergingRiskExplanation,
+	type EmergingRiskInsight,
 	type ExecutiveBrief,
 	type HistoricalAdvice,
 	type HistoricalInsight,
@@ -153,6 +158,25 @@ export function buildHistoricalInsight(candidateTitle: string, match: SimilarRes
 		currentIssueTitle: candidateTitle,
 		previousResolutionTitle: match.event.actionTaken,
 		measuredResult: match.event.impactSummary,
+	};
+}
+
+/**
+ * Pure transform from a Phase 14B EmergingRisk (already assembled
+ * deterministically by src/lib/signals/risks.ts, from trends.ts's counting
+ * and memory.ts's similarity match) into the Phase 14E EmergingRiskInsight.
+ * No trend detection or memory search happens here -- that's entirely
+ * risks.ts's job.
+ */
+export function buildEmergingRiskInsight(risk: EmergingRisk): EmergingRiskInsight {
+	return {
+		title: risk.title,
+		evidence: risk.evidence,
+		severity: risk.severity,
+		confidence: risk.confidence,
+		priorResolution: risk.priorResolution
+			? { actionTaken: risk.priorResolution.actionTaken, impactSummary: risk.priorResolution.impactSummary }
+			: null,
 	};
 }
 
@@ -306,6 +330,14 @@ function isHistoricalAdvice(value: unknown): value is HistoricalAdvice {
 	return typeof candidate.explanation === 'string' && candidate.explanation.trim().length > 0;
 }
 
+function isEmergingRiskExplanation(value: unknown): value is EmergingRiskExplanation {
+	if (!value || typeof value !== 'object') {
+		return false;
+	}
+	const candidate = value as Record<string, unknown>;
+	return typeof candidate.explanation === 'string' && candidate.explanation.trim().length > 0;
+}
+
 /**
  * Calls the configured model to turn a SentinelInsight into an
  * ExecutiveBrief. Never throws a raw/unexpected error -- schema-invalid
@@ -393,6 +425,26 @@ export async function generateHistoricalAdvice(insight: HistoricalInsight): Prom
 	const parsed = await callAnthropicForJson(HISTORICAL_ADVISOR_SYSTEM_PROMPT, buildHistoricalAdvicePrompt(insight));
 
 	if (!isHistoricalAdvice(parsed)) {
+		throw new AiUnavailableError('The AI service returned an unexpected response shape.');
+	}
+
+	return { explanation: parsed.explanation };
+}
+
+/**
+ * Phase 14E: calls the configured model to explain a deterministically
+ * detected emerging risk. Same failure-handling discipline as every other
+ * generate* function here.
+ */
+export async function generateEmergingRiskExplanation(
+	insight: EmergingRiskInsight,
+): Promise<EmergingRiskExplanation> {
+	const parsed = await callAnthropicForJson(
+		EMERGING_RISK_ADVISOR_SYSTEM_PROMPT,
+		buildEmergingRiskExplanationPrompt(insight),
+	);
+
+	if (!isEmergingRiskExplanation(parsed)) {
 		throw new AiUnavailableError('The AI service returned an unexpected response shape.');
 	}
 

@@ -1,4 +1,5 @@
 import type {
+	EmergingRiskInsight,
 	HistoricalInsight,
 	ImprovementInsight,
 	SentinelInsight,
@@ -211,5 +212,46 @@ export function buildHistoricalAdvicePrompt(insight: HistoricalInsight): string 
 		'Explain what worked before and why it may be worth trying again.',
 		'',
 		HISTORICAL_ADVISOR_RESPONSE_SCHEMA_INSTRUCTIONS,
+	].join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// Phase 14E -- the emerging risk advisor.
+//
+// Database -> trend engine (src/lib/signals/trends.ts, period-over-period
+// counting) -> EmergingRisk (src/lib/signals/risks.ts, evidence + a
+// memory check) -> AI explanation. The model is only ever handed evidence
+// that already happened and, when present, a prior resolution Phase 12's
+// memory layer already matched -- it never sees raw signals, never counts
+// anything itself, and is explicitly forbidden from predicting what
+// customers will do next.
+// ---------------------------------------------------------------------------
+
+export const EMERGING_RISK_ADVISOR_SYSTEM_PROMPT =
+	'You are an operations advisor for SupportOS Sentinel. Sentinel has ' +
+	'deterministically detected that an operational issue is increasing in ' +
+	'frequency, using only real counts of recent activity -- never a ' +
+	'forecast. Explain in one or two sentences, for a company executive, ' +
+	'why this is worth attention now. State only what has already ' +
+	'happened (the evidence given to you), never what will happen in the ' +
+	'future -- do not predict customer behavior or outcomes. If a prior ' +
+	'resolution is provided, mention it briefly. Be concise and concrete. ' +
+	'You only know the evidence provided -- never invent numbers or facts ' +
+	'that are not present in it.';
+
+const EMERGING_RISK_RESPONSE_SCHEMA_INSTRUCTIONS = `Respond with ONLY a single JSON object, no markdown fences, no commentary before or after it, matching exactly this shape:
+{
+  "explanation": string (1-2 sentences, plain language, evidence-based, for a non-technical executive -- never a prediction)
+}`;
+
+export function buildEmergingRiskExplanationPrompt(insight: EmergingRiskInsight): string {
+	return [
+		'Sentinel detected this issue is increasing in frequency:',
+		'',
+		JSON.stringify(insight, null, 2),
+		'',
+		'Explain why this is worth attention now, based only on the evidence given.',
+		'',
+		EMERGING_RISK_RESPONSE_SCHEMA_INSTRUCTIONS,
 	].join('\n');
 }
