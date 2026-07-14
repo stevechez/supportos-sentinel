@@ -447,6 +447,57 @@ export type Database = {
 					},
 				];
 			};
+			customer_feedback: {
+				Row: {
+					context: string | null;
+					created_at: string;
+					feedback_type: string;
+					id: string;
+					member_id: string | null;
+					message: string;
+					organization_id: string;
+					priority: string;
+					status: string;
+				};
+				Insert: {
+					context?: string | null;
+					created_at?: string;
+					feedback_type: string;
+					id?: string;
+					member_id?: string | null;
+					message: string;
+					organization_id: string;
+					priority?: string;
+					status?: string;
+				};
+				Update: {
+					context?: string | null;
+					created_at?: string;
+					feedback_type?: string;
+					id?: string;
+					member_id?: string | null;
+					message?: string;
+					organization_id?: string;
+					priority?: string;
+					status?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'customer_feedback_member_id_fkey';
+						columns: ['member_id'];
+						isOneToOne: false;
+						referencedRelation: 'members';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'customer_feedback_organization_id_fkey';
+						columns: ['organization_id'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					},
+				];
+			};
 			customers: {
 				Row: {
 					ai_summary: string | null;

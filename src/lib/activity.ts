@@ -42,7 +42,8 @@ export type ActivityAction =
 	| 'created_baseline_report'
 	| 'created_finding_from_pattern'
 	| 'updated_finding_status'
-	| 'updated_recommendation_status';
+	| 'updated_recommendation_status'
+	| 'submitted_feedback';
 
 export interface LogActivityInput {
 	organizationId: string;
@@ -155,6 +156,8 @@ export function describeActivity(entry: ActivityEntry): string {
 			const status = typeof entry.metadata.status === 'string' ? entry.metadata.status : 'updated';
 			return `${who} marked a recommendation as ${status.replace('_', ' ')}`;
 		}
+		case 'submitted_feedback':
+			return `${who} sent feedback`;
 		default:
 			return `${who} performed an action`;
 	}

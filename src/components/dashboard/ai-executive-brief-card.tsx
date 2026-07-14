@@ -8,6 +8,8 @@ import { Button } from '@supportos/ui/components/button';
 import { generateExecutiveBriefAction } from '@/lib/ai/actions';
 import type { ExecutiveBrief } from '@/lib/ai/types';
 
+import { InsightFeedback } from './insight-feedback';
+
 type State =
 	| { status: 'idle' }
 	| { status: 'loading' }
@@ -111,6 +113,10 @@ export function AiExecutiveBriefCard() {
 								emptyText="No priorities called out."
 								accentClassName="text-primary"
 							/>
+						</div>
+
+						<div className="border-t pt-4">
+							<InsightFeedback context="ai_executive_brief" />
 						</div>
 					</div>
 				)}
