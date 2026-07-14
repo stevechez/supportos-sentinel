@@ -1,25 +1,32 @@
-import { CheckCircle2, Eye, Shield, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { CheckCircle2, Lock, Scale, Sparkles } from 'lucide-react';
 
 import { Container } from '@/components/marketing/container';
 
+// Phase 17F -- previously an orphaned component (built, never rendered).
+// Rewritten so its three claims are the specific, checkable ones a stranger
+// deciding whether to connect their customer data actually needs answered,
+// not general brand copy. Same language as the in-app Settings "AI usage &
+// trust" section (Phase 16D) -- what's true behind login should be the same
+// thing said before login.
 const principles = [
 	{
 		icon: Sparkles,
-		title: 'Simple by design',
+		title: 'AI assists. It doesn’t decide.',
 		description:
-			'No complicated setup. No prompt engineering. No AI jargon. Sentinel quietly works in the background and brings you only what matters.',
+			'Every finding, score, and priority Sentinel shows you is calculated by deterministic rules first. AI is only ever asked to explain a conclusion Sentinel already reached — it never creates a finding or sets a priority on its own.',
 	},
 	{
-		icon: Eye,
-		title: 'Built around your business',
+		icon: Scale,
+		title: 'Humans decide.',
 		description:
-			'Sentinel learns how your business operates instead of forcing you to change the way you work. Every recommendation is grounded in your customer conversations.',
+			'Sentinel surfaces patterns and recommends next steps. Your team reviews, decides, and acts — nothing changes in your operation automatically.',
 	},
 	{
-		icon: Shield,
-		title: 'Technology you can trust',
+		icon: Lock,
+		title: 'Your data stays yours.',
 		description:
-			'You stay in control. Sentinel surfaces insights and recommendations, while you decide what happens next.',
+			'Your organization’s conversations and signals are isolated from every other customer’s. Your data is only ever used to produce your organization’s own insights.',
 	},
 ];
 
@@ -29,17 +36,17 @@ export function TrustSection() {
 			<Container>
 				<div className="mx-auto max-w-3xl text-center">
 					<p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand">
-						Why businesses choose Sentinel
+						Trust
 					</p>
 
 					<h2 className="mt-4 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-						The calm operating system for understanding your business.
+						Would you connect your customer data? Here&apos;s exactly what happens if you do.
 					</h2>
 
 					<p className="mt-6 text-lg leading-8 text-muted-foreground">
-						Most software asks you to manage another dashboard. Sentinel quietly
-						watches your customer conversations, identifies patterns, and gives
-						you clear recommendations— without adding more work to your day.
+						Sentinel watches your customer conversations to find patterns —
+						here&apos;s where AI is involved, where it isn&apos;t, and where
+						your data goes.
 					</p>
 				</div>
 
@@ -72,23 +79,25 @@ export function TrustSection() {
 					<div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
 						<div>
 							<h3 className="text-2xl font-semibold text-foreground">
-								Technology should reduce complexity.
+								Read the full trust center.
 							</h3>
 
 							<p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
-								Every decision behind Sentinel is guided by one principle: if
-								you need a manual to understand it, we&apos;ve made it too
-								complicated. Your business deserves software that simply works.
+								AI principles, how your data is isolated, and what happens if a
+								connection or AI explanation fails — all in one place.
 							</p>
 						</div>
 
-						<div className="flex shrink-0 items-center gap-3 rounded-2xl border border-border bg-background px-5 py-4">
+						<Link
+							href="/trust"
+							className="flex shrink-0 items-center gap-3 rounded-2xl border border-border bg-background px-5 py-4 transition-colors hover:border-brand/40"
+						>
 							<CheckCircle2 className="h-5 w-5 text-brand" />
 
 							<span className="font-medium text-foreground">
-								It just works.
+								Visit the Trust Center
 							</span>
-						</div>
+						</Link>
 					</div>
 				</div>
 			</Container>

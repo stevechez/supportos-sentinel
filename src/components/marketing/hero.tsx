@@ -18,18 +18,21 @@ export function Hero() {
 				<div className="grid items-center gap-16 lg:grid-cols-2 lg:gap-12">
 					<div className="max-w-xl animate-fade-in-up">
 						<p className="mb-6 text-xs font-medium tracking-[0.14em] text-brand uppercase">
-							Sentinel AI Platform
+							For customer operations teams
 						</p>
 
 						<h1 className="font-heading text-5xl leading-[1.05] text-foreground sm:text-6xl lg:text-7xl">
-							AI that just works
+							Understand your
 							<br />
-							for your business.
+							customer operations.
+							<br />
+							Improve them every week.
 						</h1>
 
 						<p className="mt-6 text-lg leading-8 text-muted-foreground">
-							Sentinel brings customer conversations, support, and business
-							insights together in one simple platform.
+							Sentinel analyzes customer conversations, finds recurring issues,
+							and helps your team continuously improve — without adding another
+							dashboard to manage.
 						</p>
 
 						<p className="mt-4 text-sm text-muted-foreground">
