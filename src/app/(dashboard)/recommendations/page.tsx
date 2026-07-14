@@ -1,35 +1,15 @@
-import { ArrowRight, CheckCircle2, Lightbulb, TrendingUp } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 import { Container } from '@/components/marketing/container';
+import { EmptyState } from '@/components/dashboard/empty-state';
+import { getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
 
-const recommendations = [
-	{
-		title: 'Add clearer pricing information',
-		description:
-			'Customers frequently ask about pricing. Adding clearer information may reduce repetitive questions.',
-		impact: 'High impact',
-		status: 'Recommended',
-		icon: TrendingUp,
-	},
-	{
-		title: 'Improve response time during busy hours',
-		description:
-			'Customers are waiting longer during peak periods. Faster responses can improve satisfaction.',
-		impact: 'Medium impact',
-		status: 'Suggested',
-		icon: Lightbulb,
-	},
-	{
-		title: 'Expand your service information',
-		description:
-			'Customers are asking about available services. More detail could help them make decisions faster.',
-		impact: 'Medium impact',
-		status: 'Suggested',
-		icon: CheckCircle2,
-	},
-];
+export default async function RecommendationsPage() {
+	const data = await getExecutiveDashboardData();
+	const recommendations = data?.recommendations ?? [];
+	const highImpactCount = recommendations.filter(r => r.impact === 'High').length;
+	const quickWinCount = recommendations.filter(r => r.effort === 'Low').length;
 
-export default function RecommendationsPage() {
 	return (
 		<section className="py-10">
 			<Container>
@@ -52,34 +32,40 @@ export default function RecommendationsPage() {
 					<div className="rounded-2xl border border-border bg-card p-5">
 						<p className="text-sm text-muted-foreground">Recommended actions</p>
 
-						<p className="mt-2 text-3xl font-semibold">3</p>
+						<p className="mt-2 text-3xl font-semibold">{recommendations.length}</p>
 					</div>
 
 					<div className="rounded-2xl border border-border bg-card p-5">
 						<p className="text-sm text-muted-foreground">High impact</p>
 
-						<p className="mt-2 text-3xl font-semibold">1</p>
+						<p className="mt-2 text-3xl font-semibold">{highImpactCount}</p>
 					</div>
 
 					<div className="rounded-2xl border border-border bg-card p-5">
-						<p className="text-sm text-muted-foreground">Completed</p>
+						<p className="text-sm text-muted-foreground">Quick wins</p>
 
-						<p className="mt-2 text-3xl font-semibold">0</p>
+						<p className="mt-2 text-3xl font-semibold">{quickWinCount}</p>
 					</div>
 				</div>
 
-				<div className="mt-10 space-y-5">
-					{recommendations.map(item => {
-						const Icon = item.icon;
-
-						return (
+				{recommendations.length === 0 ? (
+					<div className="mt-10">
+						<EmptyState
+							icon={Sparkles}
+							title="No recommended actions yet."
+							description="Sentinel will generate recommendations as findings are identified."
+						/>
+					</div>
+				) : (
+					<div className="mt-10 space-y-5">
+						{recommendations.map(item => (
 							<div
-								key={item.title}
+								key={item.id}
 								className="rounded-2xl border border-border bg-card p-6 transition-colors hover:border-brand/30"
 							>
 								<div className="flex items-start gap-4">
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10">
-										<Icon className="h-5 w-5 text-brand" />
+									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-sm font-semibold text-brand">
+										{item.rank}
 									</div>
 
 									<div className="flex-1">
@@ -89,12 +75,12 @@ export default function RecommendationsPage() {
 											</h2>
 
 											<span className="text-sm text-muted-foreground">
-												{item.impact}
+												{item.impact} impact &middot; {item.effort} effort
 											</span>
 										</div>
 
 										<p className="mt-2 text-sm leading-6 text-muted-foreground">
-											{item.description}
+											{item.impactDescription}
 										</p>
 
 										<button className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-brand">
@@ -104,9 +90,9 @@ export default function RecommendationsPage() {
 									</div>
 								</div>
 							</div>
-						);
-					})}
-				</div>
+						))}
+					</div>
+				)}
 			</Container>
 		</section>
 	);

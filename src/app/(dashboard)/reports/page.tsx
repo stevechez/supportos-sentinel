@@ -1,33 +1,35 @@
-import {
-	ArrowUpRight,
-	CheckCircle2,
-	ClipboardList,
-	TrendingUp,
-} from 'lucide-react';
+import { AlertTriangle, Sparkles } from 'lucide-react';
 
 import { Container } from '@/components/marketing/container';
+import { EmptyState } from '@/components/dashboard/empty-state';
+import { getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
 
-const insights = [
-	{
-		title: 'Customer satisfaction is improving',
-		description:
-			'Customers are receiving faster responses and more conversations are being resolved successfully.',
-		icon: TrendingUp,
-	},
-	{
-		title: 'Pricing clarity remains an opportunity',
-		description:
-			'Customers continue asking similar pricing questions. More information may reduce confusion.',
-		icon: ClipboardList,
-	},
-	{
-		title: 'Support conversations are healthy',
-		description: 'Most customer requests are being handled successfully.',
-		icon: CheckCircle2,
-	},
-];
+function healthLabel(score: number): string {
+	if (score >= 85) return 'Excellent';
+	if (score >= 70) return 'Good';
+	if (score >= 50) return 'Needs attention';
+	return 'At risk';
+}
 
-export default function ReportsPage() {
+export default async function ReportsPage() {
+	const data = await getExecutiveDashboardData();
+
+	if (!data) {
+		return (
+			<section className="py-10">
+				<Container>
+					<EmptyState
+						icon={AlertTriangle}
+						title="No organization found"
+						description="Your account isn't linked to an organization yet."
+					/>
+				</Container>
+			</section>
+		);
+	}
+
+	const { healthScore, executiveSummary, counts } = data;
+
 	return (
 		<section className="py-10">
 			<Container>
@@ -50,30 +52,25 @@ export default function ReportsPage() {
 					<div className="rounded-2xl border border-border bg-card p-6">
 						<p className="text-sm text-muted-foreground">Business Health</p>
 
-						<p className="mt-3 text-4xl font-semibold">94</p>
+						<p className="mt-3 text-4xl font-semibold">{healthScore.score}</p>
 
-						<p className="mt-2 text-sm text-brand">Excellent</p>
+						<p className="mt-2 text-sm text-brand">{healthLabel(healthScore.score)}</p>
 					</div>
 
 					<div className="rounded-2xl border border-border bg-card p-6">
-						<p className="text-sm text-muted-foreground">
-							Customer Conversations
-						</p>
+						<p className="text-sm text-muted-foreground">Open Findings</p>
 
-						<p className="mt-3 text-4xl font-semibold">128</p>
+						<p className="mt-3 text-4xl font-semibold">{counts.criticalFindings}</p>
 
-						<p className="mt-2 inline-flex items-center gap-1 text-sm text-brand">
-							<ArrowUpRight className="h-4 w-4" />
-							12% this month
-						</p>
+						<p className="mt-2 text-sm text-muted-foreground">Currently unresolved</p>
 					</div>
 
 					<div className="rounded-2xl border border-border bg-card p-6">
-						<p className="text-sm text-muted-foreground">Resolved Requests</p>
+						<p className="text-sm text-muted-foreground">Recommended Actions</p>
 
-						<p className="mt-3 text-4xl font-semibold">96%</p>
+						<p className="mt-3 text-4xl font-semibold">{counts.recommendedActions}</p>
 
-						<p className="mt-2 text-sm text-brand">Excellent performance</p>
+						<p className="mt-2 text-sm text-muted-foreground">Ready to work on</p>
 					</div>
 				</div>
 
@@ -83,44 +80,42 @@ export default function ReportsPage() {
 					</h2>
 
 					<p className="mt-3 text-sm leading-7 text-muted-foreground">
-						Customer conversations are healthy. Response times have improved,
-						and customers are getting answers faster. The biggest opportunity is
-						providing clearer pricing information.
+						{executiveSummary.summary}
 					</p>
 				</div>
 
-				<div className="mt-8 space-y-5">
-					<h2 className="text-xl font-semibold text-foreground">
-						Key insights
-					</h2>
+				{executiveSummary.topRisks.length === 0 ? (
+					<div className="mt-8">
+						<EmptyState
+							icon={Sparkles}
+							title="Excellent."
+							description="No critical operational risks detected."
+						/>
+					</div>
+				) : (
+					<div className="mt-8 space-y-5">
+						<h2 className="text-xl font-semibold text-foreground">
+							Key insights
+						</h2>
 
-					{insights.map(item => {
-						const Icon = item.icon;
-
-						return (
+						{executiveSummary.topRisks.map((risk, index) => (
 							<div
-								key={item.title}
+								key={risk}
 								className="rounded-2xl border border-border bg-card p-6 transition-colors hover:border-brand/30"
 							>
 								<div className="flex gap-4">
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10">
-										<Icon className="h-5 w-5 text-brand" />
+									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-sm font-semibold text-brand">
+										{index + 1}
 									</div>
 
 									<div>
-										<h3 className="font-medium text-foreground">
-											{item.title}
-										</h3>
-
-										<p className="mt-2 text-sm leading-6 text-muted-foreground">
-											{item.description}
-										</p>
+										<h3 className="font-medium text-foreground">{risk}</h3>
 									</div>
 								</div>
 							</div>
-						);
-					})}
-				</div>
+						))}
+					</div>
+				)}
 			</Container>
 		</section>
 	);

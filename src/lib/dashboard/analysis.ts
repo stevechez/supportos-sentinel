@@ -470,10 +470,7 @@ export function calculateTrend(
 	if (reports.length < 2) {
 		return {
 			available: false,
-			message:
-				reports.length === 0
-					? 'Trends will appear after Sentinel generates its first report.'
-					: 'Trends will appear after Sentinel generates additional reports.',
+			message: 'Trends become available after additional reports are completed.',
 		};
 	}
 

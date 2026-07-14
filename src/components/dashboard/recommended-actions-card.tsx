@@ -44,8 +44,8 @@ export function RecommendedActionsCard({ recommendations }: RecommendedActionsCa
 			{recommendations.length === 0 ? (
 				<EmptyState
 					icon={Sparkles}
-					title="No recommendations yet"
-					description="Once Sentinel spots an opportunity to improve, prioritized suggestions will show up here."
+					title="No recommended actions yet."
+					description="Sentinel will generate recommendations as findings are identified."
 				/>
 			) : (
 				<>

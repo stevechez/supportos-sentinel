@@ -40,7 +40,7 @@ export function KnowledgeGapsMetric({ gaps }: KnowledgeGapsMetricProps) {
 				<MetricCard
 					title="Knowledge Gaps"
 					value={String(gaps.length)}
-					description={gaps.length > 0 ? 'Click to view associated documentation' : 'Missing documentation detected'}
+					description={gaps.length > 0 ? 'Click to view associated documentation' : 'No documentation gaps detected'}
 					icon={BookOpen}
 				/>
 			</SheetTrigger>

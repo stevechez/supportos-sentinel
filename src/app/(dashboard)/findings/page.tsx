@@ -1,35 +1,21 @@
-import { AlertTriangle, CheckCircle2, Info } from 'lucide-react';
+import { AlertTriangle, Info, ShieldCheck } from 'lucide-react';
 
 import { Container } from '@/components/marketing/container';
+import { EmptyState } from '@/components/dashboard/empty-state';
+import { getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
+import type { Finding } from '@/lib/dashboard/dashboard';
 
-const findings = [
-	{
-		title: 'Customer response times increased',
-		description:
-			'Customers are waiting longer than usual for responses. Faster replies may improve customer satisfaction.',
-		priority: 'High',
-		status: 'Needs attention',
-		icon: AlertTriangle,
-	},
-	{
-		title: 'Customers frequently ask about pricing',
-		description:
-			'Several conversations include questions about pricing and service details.',
-		priority: 'Medium',
-		status: 'Opportunity',
-		icon: Info,
-	},
-	{
-		title: 'Customer conversations are healthy',
-		description:
-			'Most conversations are being resolved quickly with positive outcomes.',
-		priority: 'Low',
-		status: 'Healthy',
-		icon: CheckCircle2,
-	},
-];
+function severityIcon(severity: Finding['severity']) {
+	if (severity === 'Critical' || severity === 'High') {
+		return AlertTriangle;
+	}
+	return Info;
+}
 
-export default function FindingsPage() {
+export default async function FindingsPage() {
+	const data = await getExecutiveDashboardData();
+	const findings = data?.findings ?? [];
+
 	return (
 		<section className="py-10">
 			<Container>
@@ -48,44 +34,54 @@ export default function FindingsPage() {
 					</p>
 				</div>
 
-				<div className="mt-10 space-y-5">
-					{findings.map(finding => {
-						const Icon = finding.icon;
+				{findings.length === 0 ? (
+					<div className="mt-10">
+						<EmptyState
+							icon={ShieldCheck}
+							title="Excellent."
+							description="No critical operational risks detected."
+						/>
+					</div>
+				) : (
+					<div className="mt-10 space-y-5">
+						{findings.map(finding => {
+							const Icon = severityIcon(finding.severity);
 
-						return (
-							<div
-								key={finding.title}
-								className="rounded-2xl border border-border bg-card p-6 transition-colors hover:border-brand/30"
-							>
-								<div className="flex items-start gap-4">
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10">
-										<Icon className="h-5 w-5 text-brand" />
-									</div>
-
-									<div className="flex-1">
-										<div className="flex flex-col justify-between gap-2 sm:flex-row">
-											<h2 className="font-medium text-foreground">
-												{finding.title}
-											</h2>
-
-											<span className="text-sm text-muted-foreground">
-												{finding.priority}
-											</span>
+							return (
+								<div
+									key={finding.id}
+									className="rounded-2xl border border-border bg-card p-6 transition-colors hover:border-brand/30"
+								>
+									<div className="flex items-start gap-4">
+										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10">
+											<Icon className="h-5 w-5 text-brand" />
 										</div>
 
-										<p className="mt-2 text-sm leading-6 text-muted-foreground">
-											{finding.description}
-										</p>
+										<div className="flex-1">
+											<div className="flex flex-col justify-between gap-2 sm:flex-row">
+												<h2 className="font-medium text-foreground">
+													{finding.title}
+												</h2>
 
-										<p className="mt-4 text-xs font-medium uppercase tracking-wide text-brand">
-											{finding.status}
-										</p>
+												<span className="text-sm text-muted-foreground">
+													{finding.severity}
+												</span>
+											</div>
+
+											<p className="mt-2 text-sm leading-6 text-muted-foreground">
+												{finding.businessImpact ?? 'Sentinel is still assessing the business impact of this finding.'}
+											</p>
+
+											<p className="mt-4 text-xs font-medium uppercase tracking-wide text-brand">
+												{finding.isTopPriority ? 'Needs attention' : 'Monitoring'}
+											</p>
+										</div>
 									</div>
 								</div>
-							</div>
-						);
-					})}
-				</div>
+							);
+						})}
+					</div>
+				)}
 			</Container>
 		</section>
 	);

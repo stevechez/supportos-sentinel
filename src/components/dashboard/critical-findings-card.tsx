@@ -46,8 +46,8 @@ export function CriticalFindingsCard({ findings }: CriticalFindingsCardProps) {
 			{findings.length === 0 ? (
 				<EmptyState
 					icon={ShieldCheck}
-					title="No critical findings"
-					description="Sentinel hasn't detected any high-priority issues. You'll see them here as soon as they come up."
+					title="Excellent."
+					description="No critical operational risks detected. You'll see findings here as soon as Sentinel spots something."
 				/>
 			) : (
 				<>
