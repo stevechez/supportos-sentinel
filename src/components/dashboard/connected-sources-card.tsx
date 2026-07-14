@@ -30,7 +30,7 @@ export function ConnectedSourcesCard({ sources }: ConnectedSourcesCardProps) {
 
 			<div className="divide-y">
 				{sources.map(source => (
-					<SourceRow key={source.source} source={source} />
+					<SourceRow key={source.key} source={source} />
 				))}
 			</div>
 		</div>
@@ -96,7 +96,7 @@ function SourceRow({ source }: { source: ConnectedSourceStatus }) {
 				</div>
 			</div>
 
-			{source.source === 'supportos' && (
+			{source.actionable && (
 				<Button size="xs" variant="outline" onClick={handleSync} disabled={isPending}>
 					<RefreshCw className={`h-3 w-3 ${isPending ? 'animate-spin' : ''}`} aria-hidden="true" />
 					{isPending ? 'Syncing…' : source.state === 'connected' ? 'Sync Now' : 'Connect SupportOS'}

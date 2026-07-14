@@ -21,12 +21,16 @@ export interface SignalsOverview {
 export type ConnectedSourceState = 'connected' | 'available' | 'coming_soon';
 
 export interface ConnectedSourceStatus {
+	/** Unique per row -- may differ from `source` when a provider gets more than one row (Phase 11G: "SupportOS Tickets" and "Chat Conversations" are both provider 'supportos'). */
+	key: string;
 	source: SignalSource;
 	label: string;
 	state: ConnectedSourceState;
 	signalCount: number;
 	/** Null if this source has never produced a signal for this org yet. */
 	lastSyncedAt: string | null;
+	/** Whether this row owns the Connect/Sync action, or is purely informational (rides on another row's connection). */
+	actionable: boolean;
 }
 
 function toOperationalSignal(row: {
@@ -85,12 +89,15 @@ export async function getSignalsOverview(): Promise<SignalsOverview | null> {
 }
 
 /**
- * Phase 9D / 10B: "Sentinel is watching" -- one row per source the
+ * Phase 9D / 10B / 11G: "Sentinel is watching" -- one row per source the
  * Connected Sources card shows. Manual entry is always "available" (it's
  * just a form, no connection needed). SupportOS reflects a real
  * sentinel_connections row (Phase 10A) -- "connected" once the org has
  * clicked Connect/Sync at least once, otherwise it's the thing the
- * onboarding flow prompts for. CSV is shown as "coming soon" per the
+ * onboarding flow prompts for. "Chat Conversations" (Phase 11G) rides on
+ * the same connection -- it's not a second integration, just a
+ * type-filtered view of what that one sync already produced, so it has no
+ * Connect/Sync button of its own. CSV is shown as "coming soon" per the
  * handoff -- no row, no action, just visibility into what's next.
  */
 export async function getConnectedSourcesOverview(): Promise<ConnectedSourceStatus[] | null> {
@@ -104,7 +111,7 @@ export async function getConnectedSourcesOverview(): Promise<ConnectedSourceStat
 	const [{ data: signalRows, error: signalError }, connections] = await Promise.all([
 		supabase
 			.from('sentinel_signals')
-			.select('source, created_at')
+			.select('source, type, created_at')
 			.eq('organization_id', membership.organizationId),
 		getConnections(supabase, membership.organizationId),
 	]);
@@ -114,6 +121,7 @@ export async function getConnectedSourcesOverview(): Promise<ConnectedSourceStat
 	}
 
 	const bySource = new Map<string, { count: number; lastSyncedAt: string | null }>();
+	let conversationCount = 0;
 	for (const row of signalRows ?? []) {
 		const existing = bySource.get(row.source) ?? { count: 0, lastSyncedAt: null };
 		existing.count += 1;
@@ -121,33 +129,55 @@ export async function getConnectedSourcesOverview(): Promise<ConnectedSourceStat
 			existing.lastSyncedAt = row.created_at;
 		}
 		bySource.set(row.source, existing);
+
+		if (row.source === 'supportos' && row.type === 'conversation') {
+			conversationCount += 1;
+		}
 	}
 
 	const manualStats = bySource.get('manual');
 	const supportOsConnection = connections.get('supportos');
 	const supportOsStats = bySource.get('supportos');
+	const supportOsState: ConnectedSourceState =
+		supportOsConnection?.status === 'connected' ? 'connected' : 'available';
+	const supportOsLastSync = supportOsConnection?.lastSyncAt ?? supportOsStats?.lastSyncedAt ?? null;
 
 	return [
 		{
+			key: 'supportos-tickets',
+			source: 'supportos',
+			label: 'SupportOS Tickets',
+			state: supportOsState,
+			signalCount: supportOsStats?.count ?? 0,
+			lastSyncedAt: supportOsLastSync,
+			actionable: true,
+		},
+		{
+			key: 'chat-conversations',
+			source: 'supportos',
+			label: 'Chat Conversations',
+			state: supportOsState,
+			signalCount: conversationCount,
+			lastSyncedAt: supportOsLastSync,
+			actionable: false,
+		},
+		{
+			key: 'manual',
 			source: 'manual',
 			label: SIGNAL_SOURCE_LABELS.manual,
 			state: 'available',
 			signalCount: manualStats?.count ?? 0,
 			lastSyncedAt: manualStats?.lastSyncedAt ?? null,
+			actionable: false,
 		},
 		{
-			source: 'supportos',
-			label: SIGNAL_SOURCE_LABELS.supportos,
-			state: supportOsConnection?.status === 'connected' ? 'connected' : 'available',
-			signalCount: supportOsStats?.count ?? 0,
-			lastSyncedAt: supportOsConnection?.lastSyncAt ?? supportOsStats?.lastSyncedAt ?? null,
-		},
-		{
+			key: 'csv',
 			source: 'csv',
 			label: SIGNAL_SOURCE_LABELS.csv,
 			state: 'coming_soon',
 			signalCount: 0,
 			lastSyncedAt: null,
+			actionable: false,
 		},
 	];
 }

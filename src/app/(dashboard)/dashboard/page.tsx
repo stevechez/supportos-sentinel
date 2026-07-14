@@ -13,12 +13,14 @@ import { OperationalSignalsCard } from '@/components/dashboard/operational-signa
 import { ConnectedSourcesCard } from '@/components/dashboard/connected-sources-card';
 import { OnboardingBanner } from '@/components/dashboard/onboarding-banner';
 import { FirstInsightCard } from '@/components/dashboard/first-insight-card';
+import { CustomerConversationsCard } from '@/components/dashboard/customer-conversations-card';
 import { EmptyState } from '@/components/dashboard/empty-state';
 
 import { Activity, AlertTriangle, Building2, ClipboardList } from 'lucide-react';
 
 import { getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
 import { getSignalsOverview, getConnectedSourcesOverview } from '@/lib/signals/data';
+import { buildConversationSummary } from '@/lib/signals/conversations';
 import { buildFirstInsightSummary } from '@/lib/signals/insight';
 
 export default async function DashboardPage() {
@@ -157,6 +159,9 @@ export default async function DashboardPage() {
 					<RecentImprovementsCard improvements={improvementHistory} />
 					<ExecutiveTimelineCard events={timeline} />
 				</div>
+
+				{/* Customer Conversations (Phase 11F) */}
+				<CustomerConversationsCard summary={buildConversationSummary(signals, patterns)} />
 
 				{/* Operational Signals (Phase 8) + Connected Sources (Phase 9) */}
 				<div className="grid gap-6 lg:grid-cols-3">
