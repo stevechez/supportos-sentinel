@@ -2,12 +2,15 @@ import { serverEnv } from '@supportos/config/env/server';
 
 import type { DashboardMetrics } from '@/lib/dashboard/analysis';
 import type { ImprovementRecord } from '@/lib/dashboard/improvement';
+import type { SignalPattern } from '@/lib/signals/patterns';
 
 import {
 	buildExecutiveBriefPrompt,
 	buildImprovementExplanationPrompt,
+	buildSignalPatternExplanationPrompt,
 	EXECUTIVE_ANALYST_SYSTEM_PROMPT,
 	IMPROVEMENT_ADVISOR_SYSTEM_PROMPT,
+	SIGNAL_PATTERN_SYSTEM_PROMPT,
 } from './prompts';
 import {
 	AiUnavailableError,
@@ -15,6 +18,8 @@ import {
 	type ImprovementExplanation,
 	type ImprovementInsight,
 	type SentinelInsight,
+	type SignalPatternExplanation,
+	type SignalPatternInsight,
 } from './types';
 
 // ---------------------------------------------------------------------------
@@ -95,6 +100,20 @@ export function buildImprovementInsight(
 		healthScoreAfter: record.healthScoreAfter,
 		delta: record.delta,
 		measuredByReport: record.measuredByReport,
+	};
+}
+
+/**
+ * Pure transform from a Phase 8D SignalPattern (already-detected
+ * deterministically) into the Phase 8E SignalPatternInsight. No grouping
+ * or clustering happens here -- that's entirely patterns.ts's job.
+ */
+export function buildSignalPatternInsight(pattern: SignalPattern): SignalPatternInsight {
+	return {
+		type: pattern.type,
+		title: pattern.title,
+		recurrenceCount: pattern.recurrenceCount,
+		daySpan: pattern.daySpan,
 	};
 }
 
@@ -219,6 +238,14 @@ function isImprovementExplanation(value: unknown): value is ImprovementExplanati
 	);
 }
 
+function isSignalPatternExplanation(value: unknown): value is SignalPatternExplanation {
+	if (!value || typeof value !== 'object') {
+		return false;
+	}
+	const candidate = value as Record<string, unknown>;
+	return typeof candidate.summary === 'string' && candidate.summary.trim().length > 0;
+}
+
 /**
  * Calls the configured model to turn a SentinelInsight into an
  * ExecutiveBrief. Never throws a raw/unexpected error -- schema-invalid
@@ -260,4 +287,24 @@ export async function generateImprovementExplanation(
 	}
 
 	return { summary: parsed.summary, estimatedImpact: parsed.estimatedImpact };
+}
+
+/**
+ * Phase 8E: calls the configured model to explain a deterministically
+ * detected signal pattern. Same failure-handling discipline as every other
+ * generate* function here.
+ */
+export async function generateSignalPatternExplanation(
+	insight: SignalPatternInsight,
+): Promise<SignalPatternExplanation> {
+	const parsed = await callAnthropicForJson(
+		SIGNAL_PATTERN_SYSTEM_PROMPT,
+		buildSignalPatternExplanationPrompt(insight),
+	);
+
+	if (!isSignalPatternExplanation(parsed)) {
+		throw new AiUnavailableError('The AI service returned an unexpected response shape.');
+	}
+
+	return { summary: parsed.summary };
 }

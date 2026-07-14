@@ -9,14 +9,19 @@ import { TrendSummaryCard } from '@/components/dashboard/trend-summary-card';
 import { AiExecutiveBriefCard } from '@/components/dashboard/ai-executive-brief-card';
 import { ExecutiveTimelineCard } from '@/components/dashboard/executive-timeline-card';
 import { RecentImprovementsCard } from '@/components/dashboard/recent-improvements-card';
+import { OperationalSignalsCard } from '@/components/dashboard/operational-signals-card';
 import { EmptyState } from '@/components/dashboard/empty-state';
 
 import { Activity, AlertTriangle, Building2, ClipboardList } from 'lucide-react';
 
 import { getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
+import { getSignalsOverview } from '@/lib/signals/data';
 
 export default async function DashboardPage() {
-	const data = await getExecutiveDashboardData();
+	const [data, signalsOverview] = await Promise.all([
+		getExecutiveDashboardData(),
+		getSignalsOverview(),
+	]);
 
 	if (!data) {
 		return (
@@ -118,6 +123,12 @@ export default async function DashboardPage() {
 					<RecentImprovementsCard improvements={improvementHistory} />
 					<ExecutiveTimelineCard events={timeline} />
 				</div>
+
+				{/* Operational Signals (Phase 8) */}
+				<OperationalSignalsCard
+					signals={signalsOverview?.signals ?? []}
+					patterns={signalsOverview?.patterns ?? []}
+				/>
 			</div>
 		</>
 	);

@@ -3,14 +3,23 @@
 import { createClient } from '@supportos/auth/server';
 
 import { getCurrentMembership, getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
+import { buildPattern, MIN_RECURRENCE } from '@/lib/signals/patterns';
+import type { OperationalSignal } from '@/lib/signals/types';
 
 import {
 	buildImprovementInsight,
 	buildSentinelInsight,
+	buildSignalPatternInsight,
 	generateExecutiveBrief,
 	generateImprovementExplanation,
+	generateSignalPatternExplanation,
 } from './analyst';
-import { AiUnavailableError, type ExecutiveBrief, type ImprovementExplanation } from './types';
+import {
+	AiUnavailableError,
+	type ExecutiveBrief,
+	type ImprovementExplanation,
+	type SignalPatternExplanation,
+} from './types';
 
 export type GenerateExecutiveBriefResult =
 	| { ok: true; brief: ExecutiveBrief }
@@ -18,6 +27,10 @@ export type GenerateExecutiveBriefResult =
 
 export type GenerateImprovementExplanationResult =
 	| { ok: true; explanation: ImprovementExplanation }
+	| { ok: false; error: string };
+
+export type ExplainSignalPatternResult =
+	| { ok: true; explanation: SignalPatternExplanation }
 	| { ok: false; error: string };
 
 /**
@@ -106,5 +119,65 @@ export async function generateImprovementExplanationAction(
 
 		console.error('[ai] unexpected error generating improvement explanation:', error);
 		return { ok: false, error: 'Something went wrong explaining this improvement. Please try again.' };
+	}
+}
+
+/**
+ * Server Action behind "Explain" on a detected signal pattern (Phase 8E).
+ * Takes only signal ids, the same defensive contract as
+ * createFindingFromPatternAction -- the pattern's stats (recurrence, day
+ * span) are recomputed here from the actual org-scoped rows, never trusted
+ * from the client, before being handed to the AI. Signals -> deterministic
+ * grouping -> candidate pattern -> AI explanation.
+ */
+export async function explainSignalPatternAction(
+	signalIds: string[],
+): Promise<ExplainSignalPatternResult> {
+	try {
+		const membership = await getCurrentMembership();
+		if (!membership) {
+			return { ok: false, error: "We couldn't verify your organization. Please try again." };
+		}
+
+		if (signalIds.length < MIN_RECURRENCE) {
+			return { ok: false, error: 'Not enough signals to form a pattern.' };
+		}
+
+		const supabase = await createClient();
+
+		const { data: rows, error: fetchError } = await supabase
+			.from('sentinel_signals')
+			.select('*')
+			.eq('organization_id', membership.organizationId)
+			.in('id', signalIds)
+			.is('finding_id', null);
+
+		if (fetchError || !rows || rows.length < MIN_RECURRENCE) {
+			return { ok: false, error: 'This pattern is no longer available.' };
+		}
+
+		const signals = rows.map(row => ({
+			id: row.id,
+			type: row.type as OperationalSignal['type'],
+			source: row.source,
+			title: row.title,
+			content: row.content,
+			severity: row.severity as OperationalSignal['severity'],
+			createdAt: row.created_at,
+			findingId: row.finding_id,
+		}));
+
+		const pattern = buildPattern('manual', signals);
+		const insight = buildSignalPatternInsight(pattern);
+		const explanation = await generateSignalPatternExplanation(insight);
+
+		return { ok: true, explanation };
+	} catch (error) {
+		if (error instanceof AiUnavailableError) {
+			return { ok: false, error: error.message };
+		}
+
+		console.error('[ai] unexpected error explaining signal pattern:', error);
+		return { ok: false, error: 'Something went wrong explaining this pattern. Please try again.' };
 	}
 }

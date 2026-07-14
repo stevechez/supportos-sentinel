@@ -1,4 +1,4 @@
-import type { ImprovementInsight, SentinelInsight } from './types';
+import type { ImprovementInsight, SentinelInsight, SignalPatternInsight } from './types';
 
 // Prompt design (Phase 6 Workstream 4). The AI is cast as an operations
 // advisor writing for a company executive, not a general-purpose data
@@ -95,5 +95,40 @@ export function buildImprovementExplanationPrompt(insight: ImprovementInsight): 
 		'Explain this result for a company executive.',
 		'',
 		IMPROVEMENT_RESPONSE_SCHEMA_INSTRUCTIONS,
+	].join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// Phase 8E -- explaining a detected signal pattern.
+//
+// Signals -> deterministic grouping -> candidate pattern -> AI explanation.
+// The model is only ever handed a pattern that already crossed the
+// recurrence threshold in code (src/lib/signals/patterns.ts) -- it never
+// sees raw signals and never decides what counts as recurring.
+// ---------------------------------------------------------------------------
+
+export const SIGNAL_PATTERN_SYSTEM_PROMPT =
+	'You are an operations advisor for SupportOS Sentinel. Sentinel has ' +
+	'deterministically detected a recurring pattern across several ' +
+	'operational signals (tickets, conversations, feedback, or similar) ' +
+	'logged by the team. Explain in one or two sentences, for a company ' +
+	'executive, what this recurring pattern likely means operationally. Be ' +
+	'concise and concrete. You only know the pattern statistics provided --' +
+	' never invent specifics that are not present in them.';
+
+const SIGNAL_PATTERN_RESPONSE_SCHEMA_INSTRUCTIONS = `Respond with ONLY a single JSON object, no markdown fences, no commentary before or after it, matching exactly this shape:
+{
+  "summary": string (1-2 sentences, plain language, for a non-technical executive)
+}`;
+
+export function buildSignalPatternExplanationPrompt(insight: SignalPatternInsight): string {
+	return [
+		'Here is a recurring pattern Sentinel detected across operational signals:',
+		'',
+		JSON.stringify(insight, null, 2),
+		'',
+		'Explain what this pattern likely means for the business.',
+		'',
+		SIGNAL_PATTERN_RESPONSE_SCHEMA_INSTRUCTIONS,
 	].join('\n');
 }

@@ -1269,6 +1269,57 @@ export type Database = {
 					},
 				];
 			};
+			sentinel_signals: {
+				Row: {
+					content: string | null;
+					created_at: string;
+					finding_id: string | null;
+					id: string;
+					organization_id: string;
+					severity: string | null;
+					source: string;
+					title: string;
+					type: string;
+				};
+				Insert: {
+					content?: string | null;
+					created_at?: string;
+					finding_id?: string | null;
+					id?: string;
+					organization_id: string;
+					severity?: string | null;
+					source?: string;
+					title: string;
+					type: string;
+				};
+				Update: {
+					content?: string | null;
+					created_at?: string;
+					finding_id?: string | null;
+					id?: string;
+					organization_id?: string;
+					severity?: string | null;
+					source?: string;
+					title?: string;
+					type?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'sentinel_signals_finding_id_fkey';
+						columns: ['finding_id'];
+						isOneToOne: false;
+						referencedRelation: 'sentinel_findings';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'sentinel_signals_organization_id_fkey';
+						columns: ['organization_id'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					},
+				];
+			};
 			settings: {
 				Row: {
 					key: string;

@@ -77,6 +77,25 @@ export interface ImprovementExplanation {
 }
 
 /**
+ * SignalPatternInsight -- the Phase 8E input contract. Built the same way
+ * as every other insight in this file: a pure transform over a pattern
+ * src/lib/signals/patterns.ts already detected deterministically. The AI
+ * explains a pattern that grouping already found; it never does the
+ * grouping or decides what counts as a pattern itself.
+ */
+export interface SignalPatternInsight {
+	type: string;
+	title: string;
+	recurrenceCount: number;
+	daySpan: number;
+}
+
+/** Phase 8E's output contract -- one explanatory sentence, same discipline as every other AI output here. */
+export interface SignalPatternExplanation {
+	summary: string;
+}
+
+/**
  * Thrown for any failure in the AI boundary -- missing configuration,
  * network failure, non-200 response, malformed/invalid JSON. Always carries
  * a generic, user-safe message; the real cause is attached for server-side
