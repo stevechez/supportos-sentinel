@@ -1,8 +1,9 @@
 import type { MetadataRoute } from 'next';
 
 import { resources } from '@/content/resources';
+import { env } from '@supportos/config/env';
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+const siteUrl = env.appUrl;
 
 const staticRoutes = [
 	{ path: '/', priority: 1, changeFrequency: 'weekly' as const },

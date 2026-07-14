@@ -5,9 +5,11 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { createClient } from '../supabase/server';
 import { getStripe } from '@supportos/billing/stripe';
+import { env } from '@supportos/config/env';
+import { serverEnv } from '@supportos/config/env/server';
 import type { Database } from '@supportos/database/types';
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+const siteUrl = env.appUrl;
 
 function slugify(input: string) {
 	const base = input
@@ -59,7 +61,7 @@ async function ensureWorkspace(
 		throw new Error(workspaceError.message);
 	}
 
-	const priceId = process.env.STRIPE_PRICE_ID;
+	const priceId = serverEnv.stripePriceId;
 
 	// Billing isn't configured yet — let them into the product without
 	// blocking on checkout rather than dead-ending the flow.

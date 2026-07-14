@@ -3,12 +3,13 @@ import type Stripe from 'stripe';
 
 import { getStripe } from '@supportos/billing/stripe';
 import { createAdminClient } from '@supportos/auth/admin';
+import { serverEnv } from '@supportos/config/env/server';
 
 // Stripe requires the raw request body to verify the webhook signature, so
 // this route can't use the default JSON body parsing.
 export async function POST(request: Request) {
 	const signature = request.headers.get('stripe-signature');
-	const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+	const webhookSecret = serverEnv.stripeWebhookSecret;
 
 	if (!signature || !webhookSecret) {
 		return NextResponse.json(

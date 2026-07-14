@@ -1,5 +1,7 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
+import { env } from '@supportos/config/env';
+import { serverEnv } from '@supportos/config/env/server';
 import type { Database } from '@supportos/database/types';
 
 /**
@@ -9,15 +11,9 @@ import type { Database } from '@supportos/database/types';
  * or expose the service role key to the browser.
  */
 export function createAdminClient() {
-	const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-	if (!serviceRoleKey) {
-		throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set.');
-	}
-
 	return createSupabaseClient<Database>(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		serviceRoleKey,
+		env.supabaseUrl,
+		serverEnv.supabaseServiceRoleKey,
 		{
 			auth: {
 				autoRefreshToken: false,

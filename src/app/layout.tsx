@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { DM_Serif_Display, Manrope } from 'next/font/google';
 
 import { cn } from '@supportos/ui/utils';
+import { env } from '@supportos/config/env';
 import './globals.css';
 
 // Loaded globally so marketing and dashboard share one design system.
@@ -18,7 +19,7 @@ const body = Manrope({
 	display: 'swap',
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+const siteUrl = env.appUrl;
 
 export const metadata: Metadata = {
 	metadataBase: new URL(siteUrl),

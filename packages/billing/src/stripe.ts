@@ -1,5 +1,7 @@
 import Stripe from 'stripe';
 
+import { serverEnv } from '@supportos/config/env/server';
+
 let stripeClient: Stripe | null = null;
 
 /**
@@ -8,13 +10,7 @@ let stripeClient: Stripe | null = null;
  */
 export function getStripe(): Stripe {
 	if (!stripeClient) {
-		const secretKey = process.env.STRIPE_SECRET_KEY;
-
-		if (!secretKey) {
-			throw new Error('STRIPE_SECRET_KEY is not set.');
-		}
-
-		stripeClient = new Stripe(secretKey, {
+		stripeClient = new Stripe(serverEnv.stripeSecretKey, {
 			apiVersion: '2026-06-24.dahlia',
 		});
 	}

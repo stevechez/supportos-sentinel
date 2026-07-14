@@ -6,6 +6,7 @@
 		"./stripe": "./src/stripe.ts"
 	},
 	"dependencies": {
+		"@supportos/config": "workspace:*",
 		"stripe": "^22.3.1"
 	}
 }

@@ -1,11 +1,9 @@
 import { createBrowserClient } from '@supabase/ssr';
 
+import { env } from '@supportos/config/env';
 import type { Database } from '@supportos/database/types';
 
 // Supabase client for use in Client Components.
 export function createClient() {
-	return createBrowserClient<Database>(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-	);
+	return createBrowserClient<Database>(env.supabaseUrl, env.supabaseAnonKey);
 }

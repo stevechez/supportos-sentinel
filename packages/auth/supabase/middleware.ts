@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { env } from '@supportos/config/env';
+
 // Routes that require a signed-in session. Matches the (dashboard) route
 // group's actual paths, since Next.js route groups don't appear in the URL.
 const PROTECTED_PATHS = [
@@ -14,8 +16,8 @@ export async function updateSession(request: NextRequest) {
 	let supabaseResponse = NextResponse.next({ request });
 
 	const supabase = createServerClient(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+		env.supabaseUrl,
+		env.supabaseAnonKey,
 		{
 			cookies: {
 				getAll() {
