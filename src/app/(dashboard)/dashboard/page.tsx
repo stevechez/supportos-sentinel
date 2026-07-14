@@ -6,6 +6,7 @@ import { CriticalFindingsCard } from '@/components/dashboard/critical-findings-c
 import { RecommendedActionsCard } from '@/components/dashboard/recommended-actions-card';
 import { KnowledgeGapsMetric } from '@/components/dashboard/knowledge-gaps-metric';
 import { TrendSummaryCard } from '@/components/dashboard/trend-summary-card';
+import { AiExecutiveBriefCard } from '@/components/dashboard/ai-executive-brief-card';
 import { EmptyState } from '@/components/dashboard/empty-state';
 
 import { Activity, AlertTriangle, Building2, ClipboardList } from 'lucide-react';
@@ -93,6 +94,9 @@ export default async function DashboardPage() {
 
 					<CriticalFindingsCard findings={findings} />
 				</div>
+
+				{/* AI Executive Brief */}
+				<AiExecutiveBriefCard />
 
 				{/* Bottom Row */}
 				<RecommendedActionsCard recommendations={recommendations} />
