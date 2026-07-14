@@ -4,9 +4,11 @@ import { MetricCard } from '@/components/dashboard/metric-card';
 import { ExecutiveSummaryCard } from '@/components/dashboard/executive-summary-card';
 import { CriticalFindingsCard } from '@/components/dashboard/critical-findings-card';
 import { RecommendedActionsCard } from '@/components/dashboard/recommended-actions-card';
+import { KnowledgeGapsMetric } from '@/components/dashboard/knowledge-gaps-metric';
+import { TrendSummaryCard } from '@/components/dashboard/trend-summary-card';
 import { EmptyState } from '@/components/dashboard/empty-state';
 
-import { Activity, AlertTriangle, BookOpen, Building2, ClipboardList } from 'lucide-react';
+import { Activity, AlertTriangle, Building2, ClipboardList } from 'lucide-react';
 
 import { getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
 
@@ -32,7 +34,7 @@ export default async function DashboardPage() {
 		);
 	}
 
-	const { healthScore, executiveSummary, criticalFindings, recommendations, counts } = data;
+	const { healthScore, executiveSummary, findings, recommendations, knowledgeGaps, trend, counts } = data;
 
 	return (
 		<>
@@ -42,8 +44,15 @@ export default async function DashboardPage() {
 			/>
 
 			<div className="space-y-8 px-6 py-8 lg:px-8">
+				{/* Trend */}
+				<TrendSummaryCard trend={trend} />
+
 				{/* Top Row */}
-				<HealthScoreCard score={healthScore.score} previousScore={healthScore.previousScore} />
+				<HealthScoreCard
+					score={healthScore.score}
+					previousScore={healthScore.previousScore}
+					categories={healthScore.categories}
+				/>
 
 				{/* KPI Cards */}
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -54,12 +63,7 @@ export default async function DashboardPage() {
 						icon={AlertTriangle}
 					/>
 
-					<MetricCard
-						title="Knowledge Gaps"
-						value={String(counts.knowledgeGaps)}
-						description="Missing documentation detected"
-						icon={BookOpen}
-					/>
+					<KnowledgeGapsMetric gaps={knowledgeGaps} />
 
 					<MetricCard
 						title="Recommended Actions"
@@ -82,10 +86,12 @@ export default async function DashboardPage() {
 						<ExecutiveSummaryCard
 							summary={executiveSummary.summary}
 							keyTakeaway={executiveSummary.keyTakeaway}
+							topRisks={executiveSummary.topRisks}
+							potentialScoreGain={executiveSummary.potentialScoreGain}
 						/>
 					</div>
 
-					<CriticalFindingsCard findings={criticalFindings} />
+					<CriticalFindingsCard findings={findings} />
 				</div>
 
 				{/* Bottom Row */}

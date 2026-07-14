@@ -3,9 +3,12 @@
 import { useEffect, useState } from 'react';
 import { ArrowDownRight, ArrowUpRight, HeartPulse } from 'lucide-react';
 
+import type { HealthScoreCategory } from '@/lib/dashboard/dashboard';
+
 interface HealthScoreCardProps {
 	score?: number;
 	previousScore?: number;
+	categories?: HealthScoreCategory[];
 }
 
 const RADIUS = 54;
@@ -14,6 +17,7 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 export function HealthScoreCard({
 	score = 82,
 	previousScore = 86,
+	categories = [],
 }: HealthScoreCardProps) {
 	const delta = score - previousScore;
 	const isPositive = delta >= 0;
@@ -93,14 +97,15 @@ export function HealthScoreCard({
 
 				{/* Right Side */}
 				<div className="grid w-full gap-5 lg:max-w-md">
-					<HealthMetric label="Technical Health" value={91} mounted={mounted} />
-					<HealthMetric label="Knowledge Base" value={79} mounted={mounted} />
-					<HealthMetric
-						label="Customer Experience"
-						value={84}
-						mounted={mounted}
-					/>
-					<HealthMetric label="Agent Quality" value={88} mounted={mounted} />
+					{categories.map(category => (
+						<HealthMetric
+							key={category.key}
+							label={category.label}
+							value={category.score}
+							description={category.description}
+							mounted={mounted}
+						/>
+					))}
 				</div>
 			</div>
 		</div>
@@ -110,12 +115,13 @@ export function HealthScoreCard({
 interface HealthMetricProps {
 	label: string;
 	value: number;
+	description: string;
 	mounted: boolean;
 }
 
-function HealthMetric({ label, value, mounted }: HealthMetricProps) {
+function HealthMetric({ label, value, description, mounted }: HealthMetricProps) {
 	return (
-		<div className="space-y-2">
+		<div className="space-y-1" title={description}>
 			<div className="flex justify-between text-sm">
 				<span className="text-muted-foreground">{label}</span>
 
@@ -137,6 +143,8 @@ function HealthMetric({ label, value, mounted }: HealthMetricProps) {
 					}}
 				/>
 			</div>
+
+			<p className="text-xs text-muted-foreground">{description}</p>
 		</div>
 	);
 }
