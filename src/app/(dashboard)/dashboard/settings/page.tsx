@@ -1,105 +1,151 @@
-import {
-	Building2,
-	Bell,
-	CreditCard,
-	Link2,
-	Settings2,
-	Users,
-} from 'lucide-react';
+import { Building2, ShieldCheck, Sparkles, Users } from 'lucide-react';
 
 import { Container } from '@/components/marketing/container';
+import { ActivityFeed } from '@/components/dashboard/activity-feed';
+import { ConnectedSourcesCard } from '@/components/dashboard/connected-sources-card';
+import { EmptyState } from '@/components/dashboard/empty-state';
 
-const sections = [
-	{
-		title: 'Business Profile',
-		description: 'Help Sentinel understand your business and customers.',
-		icon: Building2,
-		items: ['Business name', 'Industry', 'Website information'],
-	},
-	{
-		title: 'Connections',
-		description: 'Connect the tools Sentinel works with.',
-		icon: Link2,
-		items: ['Customer conversations', 'Business systems', 'Knowledge sources'],
-	},
-	{
-		title: 'AI Preferences',
-		description: 'Choose how Sentinel assists your business.',
-		icon: Settings2,
-		items: ['Response style', 'Automation preferences', 'Assistant behavior'],
-	},
-	{
-		title: 'Notifications',
-		description: 'Choose when Sentinel keeps you informed.',
-		icon: Bell,
-		items: ['Important findings', 'Weekly reports', 'Recommendations'],
-	},
-	{
-		title: 'Team Access',
-		description: 'Manage who can access your Sentinel workspace.',
-		icon: Users,
-		items: ['Team members', 'Permissions', 'Workspace access'],
-	},
-	{
-		title: 'Subscription',
-		description: 'Manage your plan and billing details.',
-		icon: CreditCard,
-		items: ['Current plan', 'Billing information', 'Usage'],
-	},
-];
+import { createClient } from '@supportos/auth/server';
+import { getRecentActivity } from '@/lib/activity';
+import { getConnectedSourcesOverview } from '@/lib/signals/data';
+import { getWorkspaceOverview, MEMBER_ROLE_DESCRIPTIONS, MEMBER_ROLE_LABELS } from '@/lib/workspace';
 
-export default function SettingsPage() {
+// Phase 16B/16C/16D/16A: a real, functional Settings page. Previously a
+// static mockup of section labels with no data behind any of them
+// ("Business name", "Team members" as plain bullet text) -- every
+// section below now reads real rows, organization/members via
+// src/lib/workspace.ts, connected sources via the existing Phase 9/10
+// data layer, activity via src/lib/activity.ts. No new intelligence, no
+// new AI -- this is workspace management, not a Sentinel feature.
+export default async function SettingsPage() {
+	const workspace = await getWorkspaceOverview();
+
+	if (!workspace) {
+		return (
+			<section className="py-10">
+				<Container>
+					<EmptyState
+						icon={Building2}
+						title="No organization found"
+						description="Your account isn't linked to an organization yet, so there's nothing to manage here. Ask your workspace admin to add you, or contact support if this seems wrong."
+					/>
+				</Container>
+			</section>
+		);
+	}
+
+	const supabase = await createClient();
+	const [connectedSources, activity] = await Promise.all([
+		getConnectedSourcesOverview(),
+		getRecentActivity(supabase, workspace.organizationId),
+	]);
+
 	return (
 		<section className="py-10">
 			<Container>
 				<div className="max-w-3xl">
-					<p className="text-sm font-medium uppercase tracking-wide text-brand">
-						Settings
-					</p>
+					<p className="text-sm font-medium uppercase tracking-wide text-brand">Settings</p>
 
 					<h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
-						Manage your Sentinel experience
+						Manage your workspace
 					</h1>
 
 					<p className="mt-4 text-muted-foreground">
-						Customize your business information, connections, and how Sentinel
-						helps you.
+						Your organization, your team, and what Sentinel does with your data.
 					</p>
 				</div>
 
-				<div className="mt-10 grid gap-5 md:grid-cols-2">
-					{sections.map(section => {
-						const Icon = section.icon;
+				<div className="mt-10 space-y-10">
+					{/* Organization */}
+					<div className="rounded-2xl border border-border bg-card p-6">
+						<div className="flex items-center gap-3">
+							<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10">
+								<Building2 className="h-5 w-5 text-brand" />
+							</div>
+							<div>
+								<h2 className="font-medium text-foreground">{workspace.organizationName}</h2>
+								<p className="mt-0.5 text-sm text-muted-foreground">
+									Created{' '}
+									{new Date(workspace.organizationCreatedAt).toLocaleDateString(undefined, {
+										year: 'numeric',
+										month: 'long',
+										day: 'numeric',
+									})}
+								</p>
+							</div>
+						</div>
+					</div>
 
-						return (
-							<div
-								key={section.title}
-								className="rounded-2xl border border-border bg-card p-6 transition-colors hover:border-brand/30"
-							>
-								<div className="flex gap-4">
-									<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10">
-										<Icon className="h-5 w-5 text-brand" />
-									</div>
+					{/* Connected Sources -- reuses the existing Phase 9/10 card, not a second copy of it. */}
+					<div>
+						<h2 className="mb-4 text-lg font-medium text-foreground">Connected sources</h2>
+						<ConnectedSourcesCard sources={connectedSources ?? []} />
+					</div>
 
+					{/* Members / roles (Phase 16C) */}
+					<div>
+						<div className="mb-4 flex items-center gap-2">
+							<Users className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+							<h2 className="text-lg font-medium text-foreground">Team</h2>
+						</div>
+
+						<div className="divide-y rounded-2xl border border-border bg-card">
+							{workspace.members.map(member => (
+								<div key={member.id} className="flex items-center justify-between gap-4 p-5">
 									<div>
-										<h2 className="font-medium text-foreground">
-											{section.title}
-										</h2>
-
-										<p className="mt-2 text-sm text-muted-foreground">
-											{section.description}
+										<p className="font-medium text-foreground">
+											{member.displayName ?? 'Unnamed member'}
+											{member.isCurrentMember && (
+												<span className="ml-2 text-xs font-normal text-muted-foreground">(you)</span>
+											)}
+										</p>
+										<p className="mt-0.5 text-xs text-muted-foreground">
+											{MEMBER_ROLE_DESCRIPTIONS[member.role]}
 										</p>
 									</div>
+									<span className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-foreground">
+										{MEMBER_ROLE_LABELS[member.role]}
+									</span>
 								</div>
+							))}
+						</div>
+					</div>
 
-								<ul className="mt-5 space-y-2 text-sm text-muted-foreground">
-									{section.items.map(item => (
-										<li key={item}>• {item}</li>
-									))}
-								</ul>
-							</div>
-						);
-					})}
+					{/* AI usage transparency (Phase 16D) */}
+					<div>
+						<div className="mb-4 flex items-center gap-2">
+							<ShieldCheck className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+							<h2 className="text-lg font-medium text-foreground">AI usage &amp; trust</h2>
+						</div>
+
+						<div className="space-y-3 rounded-2xl border border-border bg-card p-6 text-sm leading-6 text-muted-foreground">
+							<p>
+								<span className="font-medium text-foreground">
+									Sentinel uses AI to explain operational insights it has already found.
+								</span>{' '}
+								Every finding, score, priority, and trend is calculated by deterministic rules
+								first -- AI is only ever asked to explain a conclusion Sentinel already reached, in
+								plain language.
+							</p>
+							<p>
+								<span className="font-medium text-foreground">AI does not make operational decisions.</span>{' '}
+								It never creates a finding, sets a priority, or predicts an outcome on its own.
+							</p>
+							<p>
+								<span className="font-medium text-foreground">Your data is only used to provide your organization&apos;s own insights.</span>{' '}
+								It is not used to train shared AI models or shown to other organizations.
+							</p>
+						</div>
+					</div>
+
+					{/* Recent activity (Phase 16A) */}
+					<div>
+						<div className="mb-4 flex items-center gap-2">
+							<Sparkles className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+							<h2 className="text-lg font-medium text-foreground">Recent activity</h2>
+						</div>
+						<ActivityFeed entries={activity} />
+					</div>
 				</div>
 			</Container>
 		</section>
