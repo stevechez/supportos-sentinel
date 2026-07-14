@@ -4,7 +4,7 @@ import {
 	AlertTriangle,
 	ClipboardList,
 	BookOpen,
-	Users,
+	Brain,
 	Settings,
 } from 'lucide-react';
 
@@ -35,9 +35,9 @@ export const navigation = [
 		icon: BookOpen,
 	},
 	{
-		name: 'Intelligence',
+		name: 'AI Assistants',
 		href: '/dashboard/intelligence',
-		icon: Users,
+		icon: Brain,
 	},
 	{
 		name: 'Settings',

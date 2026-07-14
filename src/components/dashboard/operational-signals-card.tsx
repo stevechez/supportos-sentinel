@@ -43,24 +43,24 @@ export function OperationalSignalsCard({ signals, patterns, improvementEvents }:
 				<div className="flex items-center gap-2">
 					<Antenna className="h-5 w-5 text-primary" aria-hidden="true" />
 					<div>
-						<h2 className="font-heading text-lg text-foreground">Operational Signals</h2>
+						<h2 className="font-heading text-lg text-foreground">Patterns Sentinel Is Watching</h2>
 						<p className="text-sm text-muted-foreground">
-							What your team is logging, and what Sentinel has noticed repeating
+							What your team has logged, and what keeps coming up
 						</p>
 					</div>
 				</div>
 
 				<Button size="xs" variant="outline" onClick={() => setAddOpen(true)}>
 					<Plus className="h-3.5 w-3.5" aria-hidden="true" />
-					Add Signal
+					Log Activity
 				</Button>
 			</div>
 
 			{signals.length === 0 ? (
 				<EmptyState
 					icon={Radar}
-					title="No signals logged yet."
-					description="Log a ticket, conversation, or piece of feedback and Sentinel will start watching for recurring patterns."
+					title="Nothing logged yet."
+					description="Once tickets, conversations, or feedback come in, Sentinel will start watching for issues that keep coming back. Log one below, or connect a source to bring data in automatically."
 				/>
 			) : (
 				<div className="p-5">
@@ -237,7 +237,7 @@ function AddSignalSheet({
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetContent className="flex flex-col gap-0 overflow-y-auto bg-card p-0">
 				<SheetHeader className="border-b px-6 py-5">
-					<SheetTitle className="font-heading text-lg">Add Operational Signal</SheetTitle>
+					<SheetTitle className="font-heading text-lg">Log Customer Activity</SheetTitle>
 					<p className="text-xs text-muted-foreground">
 						Log a ticket, conversation, feedback item, knowledge gap, or metric. Sentinel will
 						watch for this repeating.

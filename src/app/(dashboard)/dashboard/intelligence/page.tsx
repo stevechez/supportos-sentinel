@@ -35,7 +35,7 @@ export default function IntelligencePage() {
 			<Container>
 				<div className="max-w-3xl">
 					<p className="text-sm font-medium uppercase tracking-wide text-brand">
-						Intelligence
+						AI Assistants
 					</p>
 
 					<h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
