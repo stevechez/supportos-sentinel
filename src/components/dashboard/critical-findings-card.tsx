@@ -13,18 +13,21 @@ import {
 } from '@supportos/ui/components/sheet';
 import { Button } from '@supportos/ui/components/button';
 
+import { RelatedHistory } from './related-history';
+
 import { updateFindingStatusAction } from '@/lib/dashboard/actions';
 import { FINDING_STATUS_LABELS, FINDING_STATUS_ORDER } from '@/lib/dashboard/improvement';
-import type { Finding, Recommendation } from '@/lib/dashboard/dashboard';
+import type { Finding, ImprovementEvent, Recommendation } from '@/lib/dashboard/dashboard';
 
 interface CriticalFindingsCardProps {
 	findings: Finding[];
 	recommendations: Recommendation[];
+	improvementEvents: ImprovementEvent[];
 }
 
 const INLINE_LIMIT = 3;
 
-export function CriticalFindingsCard({ findings, recommendations }: CriticalFindingsCardProps) {
+export function CriticalFindingsCard({ findings, recommendations, improvementEvents }: CriticalFindingsCardProps) {
 	const [open, setOpen] = useState(false);
 	const visible = findings.slice(0, INLINE_LIMIT);
 	const remaining = findings.length - visible.length;
@@ -57,7 +60,12 @@ export function CriticalFindingsCard({ findings, recommendations }: CriticalFind
 				<>
 					<div className="divide-y">
 						{visible.map(finding => (
-							<FindingRow key={finding.id} finding={finding} recommendations={recommendations} />
+							<FindingRow
+								key={finding.id}
+								finding={finding}
+								recommendations={recommendations}
+								improvementEvents={improvementEvents}
+							/>
 						))}
 					</div>
 
@@ -85,7 +93,13 @@ export function CriticalFindingsCard({ findings, recommendations }: CriticalFind
 
 					<div className="divide-y">
 						{findings.map(finding => (
-							<FindingRow key={finding.id} finding={finding} recommendations={recommendations} detailed />
+							<FindingRow
+								key={finding.id}
+								finding={finding}
+								recommendations={recommendations}
+								improvementEvents={improvementEvents}
+								detailed
+							/>
 						))}
 					</div>
 				</SheetContent>
@@ -97,10 +111,12 @@ export function CriticalFindingsCard({ findings, recommendations }: CriticalFind
 function FindingRow({
 	finding,
 	recommendations,
+	improvementEvents,
 	detailed = false,
 }: {
 	finding: Finding;
 	recommendations: Recommendation[];
+	improvementEvents: ImprovementEvent[];
 	detailed?: boolean;
 }) {
 	const linkedRecommendation = recommendations.find(r => r.findingId === finding.id);
@@ -146,6 +162,8 @@ function FindingRow({
 									<DetailRow label="Expected impact">{linkedRecommendation.impact}</DetailRow>
 								</>
 							)}
+
+							<RelatedHistory candidateTitle={finding.title} events={improvementEvents} />
 						</div>
 					)}
 				</div>

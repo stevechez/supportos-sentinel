@@ -1,4 +1,10 @@
-import type { ImprovementInsight, SentinelInsight, SignalPatternInsight, WelcomeInsight } from './types';
+import type {
+	HistoricalInsight,
+	ImprovementInsight,
+	SentinelInsight,
+	SignalPatternInsight,
+	WelcomeInsight,
+} from './types';
 
 // Prompt design (Phase 6 Workstream 4). The AI is cast as an operations
 // advisor writing for a company executive, not a general-purpose data
@@ -167,5 +173,43 @@ export function buildWelcomeBriefPrompt(insight: WelcomeInsight): string {
 		'Write their welcome brief.',
 		'',
 		WELCOME_BRIEF_RESPONSE_SCHEMA_INSTRUCTIONS,
+	].join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// Phase 12F -- the AI historical advisor.
+//
+// Database facts -> deterministic memory retrieval (src/lib/dashboard/
+// memory.ts's word-overlap match) -> AI explanation. The model only ever
+// receives a current issue title, a previous resolution title, and a
+// measured result string -- it never searches history, never decides
+// what counts as similar, and never invents a metric that wasn't in the
+// measured result it was handed.
+// ---------------------------------------------------------------------------
+
+export const HISTORICAL_ADVISOR_SYSTEM_PROMPT =
+	'You are an operations advisor for SupportOS Sentinel. Sentinel has ' +
+	"deterministically matched a new operational issue to a similar issue " +
+	'the organization already resolved before, using the exact titles and ' +
+	'measured result given to you. Explain in one or two sentences, for a ' +
+	'company executive, what worked before and why it is worth considering ' +
+	'again now. Be concise and concrete. You only know the titles and ' +
+	'measured result provided -- never invent numbers, causes, or facts ' +
+	'that are not present in them.';
+
+const HISTORICAL_ADVISOR_RESPONSE_SCHEMA_INSTRUCTIONS = `Respond with ONLY a single JSON object, no markdown fences, no commentary before or after it, matching exactly this shape:
+{
+  "explanation": string (1-2 sentences, plain language, for a non-technical executive)
+}`;
+
+export function buildHistoricalAdvicePrompt(insight: HistoricalInsight): string {
+	return [
+		'Sentinel matched a new issue to something the organization already solved before:',
+		'',
+		JSON.stringify(insight, null, 2),
+		'',
+		'Explain what worked before and why it may be worth trying again.',
+		'',
+		HISTORICAL_ADVISOR_RESPONSE_SCHEMA_INSTRUCTIONS,
 	].join('\n');
 }

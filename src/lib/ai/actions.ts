@@ -3,17 +3,20 @@
 import { createClient } from '@supportos/auth/server';
 
 import { getCurrentMembership, getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
+import { findSimilarPastResolutions } from '@/lib/dashboard/memory';
 import { getSignalsOverview } from '@/lib/signals/data';
 import { buildFirstInsightSummary } from '@/lib/signals/insight';
 import { buildPattern, MIN_RECURRENCE } from '@/lib/signals/patterns';
 import type { OperationalSignal } from '@/lib/signals/types';
 
 import {
+	buildHistoricalInsight,
 	buildImprovementInsight,
 	buildSentinelInsight,
 	buildSignalPatternInsight,
 	buildWelcomeInsight,
 	generateExecutiveBrief,
+	generateHistoricalAdvice,
 	generateImprovementExplanation,
 	generateSignalPatternExplanation,
 	generateWelcomeBrief,
@@ -21,6 +24,7 @@ import {
 import {
 	AiUnavailableError,
 	type ExecutiveBrief,
+	type HistoricalAdvice,
 	type ImprovementExplanation,
 	type SignalPatternExplanation,
 	type WelcomeBrief,
@@ -40,6 +44,10 @@ export type ExplainSignalPatternResult =
 
 export type GenerateWelcomeBriefResult =
 	| { ok: true; brief: WelcomeBrief }
+	| { ok: false; error: string };
+
+export type ExplainHistoricalMatchResult =
+	| { ok: true; advice: HistoricalAdvice }
 	| { ok: false; error: string };
 
 /**
@@ -223,5 +231,48 @@ export async function generateWelcomeBriefAction(): Promise<GenerateWelcomeBrief
 
 		console.error('[ai] unexpected error generating welcome brief:', error);
 		return { ok: false, error: 'Something went wrong generating your welcome brief. Please try again.' };
+	}
+}
+
+/**
+ * Server Action behind the opt-in "Explain" button next to a deterministic
+ * "Sentinel remembers..." note (Phase 12F). Takes only a candidate title
+ * (an open finding's or a detected pattern's title, never a client-supplied
+ * match) and rebuilds the org's improvement history itself before running
+ * the same deterministic word-overlap match memory.ts already exposes --
+ * the AI is only ever handed the single best match this function finds,
+ * never the candidate title alone. Database facts -> deterministic memory
+ * retrieval -> AI explanation.
+ */
+export async function explainHistoricalMatchAction(
+	candidateTitle: string,
+): Promise<ExplainHistoricalMatchResult> {
+	try {
+		const membership = await getCurrentMembership();
+		if (!membership) {
+			return { ok: false, error: "We couldn't find your organization's data." };
+		}
+
+		const metrics = await getExecutiveDashboardData();
+		if (!metrics) {
+			return { ok: false, error: "We couldn't find your organization's data." };
+		}
+
+		const matches = findSimilarPastResolutions(candidateTitle, metrics.improvementEvents);
+		if (matches.length === 0) {
+			return { ok: false, error: 'No similar resolved history found for this issue yet.' };
+		}
+
+		const insight = buildHistoricalInsight(candidateTitle, matches[0]);
+		const advice = await generateHistoricalAdvice(insight);
+
+		return { ok: true, advice };
+	} catch (error) {
+		if (error instanceof AiUnavailableError) {
+			return { ok: false, error: error.message };
+		}
+
+		console.error('[ai] unexpected error explaining historical match:', error);
+		return { ok: false, error: 'Something went wrong retrieving this history. Please try again.' };
 	}
 }

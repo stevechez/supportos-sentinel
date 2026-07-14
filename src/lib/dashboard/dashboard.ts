@@ -16,6 +16,7 @@ import {
 	type ImprovementRecord,
 	type TimelineEvent,
 } from './improvement';
+import { buildImprovementEvents, type ImprovementEvent } from './memory';
 
 // Re-export the UI-facing types so components can import everything they
 // need from one place (`@/lib/dashboard/dashboard`) without reaching into
@@ -46,10 +47,14 @@ export {
 	RECOMMENDATION_STATUS_LABELS,
 	RECOMMENDATION_STATUS_ORDER,
 } from './improvement';
+export type { ImprovementEvent, SimilarResolution } from './memory';
+export { findSimilarPastResolutions } from './memory';
 
 export type ExecutiveDashboardData = DashboardMetrics & {
 	improvementHistory: ImprovementRecord[];
 	timeline: TimelineEvent[];
+	/** Phase 12A: the organization's resolved-finding history, reframed as evidence rather than a live status board. */
+	improvementEvents: ImprovementEvent[];
 };
 
 // A distinct, generic error type for anything that goes wrong talking to
@@ -231,6 +236,12 @@ export async function getExecutiveDashboardData(): Promise<ExecutiveDashboardDat
 
 	const improvementHistory = calculateImprovementHistory(allRecommendations, reports, metrics.healthScore.score);
 	const timeline = buildExecutiveTimeline(allFindings, allRecommendations, reports);
+	const improvementEvents = buildImprovementEvents(
+		allFindings,
+		allRecommendations,
+		reports,
+		metrics.healthScore.score,
+	);
 
-	return { ...metrics, improvementHistory, timeline };
+	return { ...metrics, improvementHistory, timeline, improvementEvents };
 }

@@ -13,8 +13,11 @@ import {
 	SheetTitle,
 } from '@supportos/ui/components/sheet';
 
+import { RelatedHistory } from './related-history';
+
 import { explainSignalPatternAction } from '@/lib/ai/actions';
 import type { SignalPatternExplanation } from '@/lib/ai/types';
+import type { ImprovementEvent } from '@/lib/dashboard/dashboard';
 import { addSignalAction, createFindingFromPatternAction } from '@/lib/signals/actions';
 import type { SignalPattern } from '@/lib/signals/patterns';
 import { SIGNAL_TYPE_LABELS, SIGNAL_TYPES } from '@/lib/signals/types';
@@ -23,13 +26,14 @@ import type { OperationalSignal, SignalType } from '@/lib/signals/types';
 interface OperationalSignalsCardProps {
 	signals: OperationalSignal[];
 	patterns: SignalPattern[];
+	improvementEvents: ImprovementEvent[];
 }
 
 // Phase 8: "Sentinel observes." This card is deliberately just a count
 // summary, a way to log a new signal, and the candidate patterns
 // deterministic grouping has already found -- never a ticket inbox, a
 // workflow builder, or anything resembling a support desk.
-export function OperationalSignalsCard({ signals, patterns }: OperationalSignalsCardProps) {
+export function OperationalSignalsCard({ signals, patterns, improvementEvents }: OperationalSignalsCardProps) {
 	const [addOpen, setAddOpen] = useState(false);
 	const summary = buildSummary(signals, patterns);
 
@@ -65,7 +69,7 @@ export function OperationalSignalsCard({ signals, patterns }: OperationalSignals
 					{patterns.length > 0 && (
 						<div className="mt-4 space-y-3 border-t pt-4">
 							{patterns.map(pattern => (
-								<PatternRow key={pattern.key} pattern={pattern} />
+								<PatternRow key={pattern.key} pattern={pattern} improvementEvents={improvementEvents} />
 							))}
 						</div>
 					)}
@@ -102,7 +106,7 @@ type ExplainState =
 	| { status: 'success'; explanation: SignalPatternExplanation }
 	| { status: 'error'; message: string };
 
-function PatternRow({ pattern }: { pattern: SignalPattern }) {
+function PatternRow({ pattern, improvementEvents }: { pattern: SignalPattern; improvementEvents: ImprovementEvent[] }) {
 	const router = useRouter();
 	const [explainState, setExplainState] = useState<ExplainState>({ status: 'idle' });
 	const [creating, setCreating] = useState(false);
@@ -193,6 +197,8 @@ function PatternRow({ pattern }: { pattern: SignalPattern }) {
 			)}
 
 			{createError && <p className="mt-2 text-xs text-destructive">{createError}</p>}
+
+			<RelatedHistory candidateTitle={pattern.title} events={improvementEvents} />
 		</div>
 	);
 }

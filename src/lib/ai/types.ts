@@ -117,6 +117,24 @@ export interface WelcomeBrief {
 }
 
 /**
+ * HistoricalInsight -- the Phase 12F input contract. A pure transform over
+ * src/lib/dashboard/memory.ts's deterministic word-overlap match between a
+ * new issue and the organization's own resolved history. The AI never
+ * searches history and never decides what counts as similar -- it only
+ * ever explains a match the deterministic layer already found.
+ */
+export interface HistoricalInsight {
+	currentIssueTitle: string;
+	previousResolutionTitle: string;
+	measuredResult: string;
+}
+
+/** Phase 12F's output contract -- one grounded sentence, same discipline as every other AI output here. */
+export interface HistoricalAdvice {
+	explanation: string;
+}
+
+/**
  * Thrown for any failure in the AI boundary -- missing configuration,
  * network failure, non-200 response, malformed/invalid JSON. Always carries
  * a generic, user-safe message; the real cause is attached for server-side

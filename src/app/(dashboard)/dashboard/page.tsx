@@ -9,6 +9,7 @@ import { TrendSummaryCard } from '@/components/dashboard/trend-summary-card';
 import { AiExecutiveBriefCard } from '@/components/dashboard/ai-executive-brief-card';
 import { ExecutiveTimelineCard } from '@/components/dashboard/executive-timeline-card';
 import { RecentImprovementsCard } from '@/components/dashboard/recent-improvements-card';
+import { OperationalMemoryCard } from '@/components/dashboard/operational-memory-card';
 import { OperationalSignalsCard } from '@/components/dashboard/operational-signals-card';
 import { ConnectedSourcesCard } from '@/components/dashboard/connected-sources-card';
 import { OnboardingBanner } from '@/components/dashboard/onboarding-banner';
@@ -59,6 +60,7 @@ export default async function DashboardPage() {
 		counts,
 		improvementHistory,
 		timeline,
+		improvementEvents,
 	} = data;
 
 	const signals = signalsOverview?.signals ?? [];
@@ -145,7 +147,11 @@ export default async function DashboardPage() {
 						/>
 					</div>
 
-					<CriticalFindingsCard findings={findings} recommendations={recommendations} />
+					<CriticalFindingsCard
+							findings={findings}
+							recommendations={recommendations}
+							improvementEvents={improvementEvents}
+						/>
 				</div>
 
 				{/* AI Executive Brief */}
@@ -160,13 +166,20 @@ export default async function DashboardPage() {
 					<ExecutiveTimelineCard events={timeline} />
 				</div>
 
+				{/* Organizational Memory (Phase 12D) */}
+				<OperationalMemoryCard events={improvementEvents} />
+
 				{/* Customer Conversations (Phase 11F) */}
 				<CustomerConversationsCard summary={buildConversationSummary(signals, patterns)} />
 
 				{/* Operational Signals (Phase 8) + Connected Sources (Phase 9) */}
 				<div className="grid gap-6 lg:grid-cols-3">
 					<div className="lg:col-span-2">
-						<OperationalSignalsCard signals={signals} patterns={patterns} />
+						<OperationalSignalsCard
+								signals={signals}
+								patterns={patterns}
+								improvementEvents={improvementEvents}
+							/>
 					</div>
 
 					<ConnectedSourcesCard sources={connectedSources ?? []} />
