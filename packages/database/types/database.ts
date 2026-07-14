@@ -1063,6 +1063,186 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			sentinel_findings: {
+				Row: {
+					business_impact: string | null;
+					category: string;
+					confidence_score: number | null;
+					created_at: string | null;
+					description: string | null;
+					id: string;
+					organization_id: string;
+					severity: string;
+					source: string | null;
+					status: string;
+					title: string;
+				};
+				Insert: {
+					business_impact?: string | null;
+					category: string;
+					confidence_score?: number | null;
+					created_at?: string | null;
+					description?: string | null;
+					id?: string;
+					organization_id: string;
+					severity?: string;
+					source?: string | null;
+					status?: string;
+					title: string;
+				};
+				Update: {
+					business_impact?: string | null;
+					category?: string;
+					confidence_score?: number | null;
+					created_at?: string | null;
+					description?: string | null;
+					id?: string;
+					organization_id?: string;
+					severity?: string;
+					source?: string | null;
+					status?: string;
+					title?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'sentinel_findings_organization_id_fkey';
+						columns: ['organization_id'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					},
+				];
+			};
+			sentinel_knowledge_gaps: {
+				Row: {
+					confidence_score: number | null;
+					created_at: string | null;
+					id: string;
+					occurrence_count: number | null;
+					organization_id: string;
+					question: string;
+					recommended_document: string | null;
+					status: string | null;
+				};
+				Insert: {
+					confidence_score?: number | null;
+					created_at?: string | null;
+					id?: string;
+					occurrence_count?: number | null;
+					organization_id: string;
+					question: string;
+					recommended_document?: string | null;
+					status?: string | null;
+				};
+				Update: {
+					confidence_score?: number | null;
+					created_at?: string | null;
+					id?: string;
+					occurrence_count?: number | null;
+					organization_id?: string;
+					question?: string;
+					recommended_document?: string | null;
+					status?: string | null;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'sentinel_knowledge_gaps_organization_id_fkey';
+						columns: ['organization_id'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					},
+				];
+			};
+			sentinel_recommendations: {
+				Row: {
+					created_at: string | null;
+					expected_impact: string | null;
+					finding_id: string | null;
+					id: string;
+					organization_id: string;
+					priority: string | null;
+					recommendation: string;
+					status: string | null;
+				};
+				Insert: {
+					created_at?: string | null;
+					expected_impact?: string | null;
+					finding_id?: string | null;
+					id?: string;
+					organization_id: string;
+					priority?: string | null;
+					recommendation: string;
+					status?: string | null;
+				};
+				Update: {
+					created_at?: string | null;
+					expected_impact?: string | null;
+					finding_id?: string | null;
+					id?: string;
+					organization_id?: string;
+					priority?: string | null;
+					recommendation?: string;
+					status?: string | null;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'sentinel_recommendations_finding_id_fkey';
+						columns: ['finding_id'];
+						isOneToOne: false;
+						referencedRelation: 'sentinel_findings';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'sentinel_recommendations_organization_id_fkey';
+						columns: ['organization_id'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					},
+				];
+			};
+			sentinel_reports: {
+				Row: {
+					created_at: string | null;
+					executive_summary: string | null;
+					health_score: number | null;
+					id: string;
+					organization_id: string;
+					report_period_end: string | null;
+					report_period_start: string | null;
+					title: string;
+				};
+				Insert: {
+					created_at?: string | null;
+					executive_summary?: string | null;
+					health_score?: number | null;
+					id?: string;
+					organization_id: string;
+					report_period_end?: string | null;
+					report_period_start?: string | null;
+					title: string;
+				};
+				Update: {
+					created_at?: string | null;
+					executive_summary?: string | null;
+					health_score?: number | null;
+					id?: string;
+					organization_id?: string;
+					report_period_end?: string | null;
+					report_period_start?: string | null;
+					title?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'sentinel_reports_organization_id_fkey';
+						columns: ['organization_id'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					},
+				];
+			};
 			settings: {
 				Row: {
 					key: string;

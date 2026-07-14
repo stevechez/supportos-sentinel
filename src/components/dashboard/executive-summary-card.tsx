@@ -1,11 +1,13 @@
 import { Sparkles } from 'lucide-react';
 
 interface ExecutiveSummaryCardProps {
-	summary?: string;
+	summary: string;
+	keyTakeaway: string;
 }
 
 export function ExecutiveSummaryCard({
-	summary = 'Customer operations remain healthy overall, but two emerging risks require attention. Checkout payment failures increased following the latest deployment, while repeated questions about subscription cancellations indicate a documentation gap. Addressing these issues is expected to reduce support volume and improve customer satisfaction over the coming week.',
+	summary,
+	keyTakeaway,
 }: ExecutiveSummaryCardProps) {
 	return (
 		<div className="rounded-xl border bg-card shadow-sm">
@@ -31,12 +33,7 @@ export function ExecutiveSummaryCard({
 						Key Takeaway
 					</div>
 
-					<p className="text-sm leading-6">
-						Prioritize payment reliability first. Resolving the checkout issue
-						is expected to have the greatest impact on customer satisfaction and
-						revenue, while publishing the missing cancellation documentation
-						should reduce repetitive support requests.
-					</p>
+					<p className="text-sm leading-6">{keyTakeaway}</p>
 				</div>
 			</div>
 		</div>

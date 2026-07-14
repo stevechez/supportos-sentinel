@@ -2,35 +2,13 @@ import { ArrowRight, CheckCircle2, ListChecks, Sparkles } from 'lucide-react';
 
 import { EmptyState } from './empty-state';
 
-interface Recommendation {
-	id: number;
-	title: string;
-	impact: string;
-	priority: 'High' | 'Medium' | 'Low';
+import type { Recommendation } from '@/lib/dashboard/dashboard';
+
+interface RecommendedActionsCardProps {
+	recommendations: Recommendation[];
 }
 
-const recommendations: Recommendation[] = [
-	{
-		id: 1,
-		title: 'Investigate checkout payment failures',
-		impact: 'Potential revenue recovery and reduced customer frustration',
-		priority: 'High',
-	},
-	{
-		id: 2,
-		title: 'Create cancellation policy documentation',
-		impact: 'Reduce repetitive support conversations',
-		priority: 'Medium',
-	},
-	{
-		id: 3,
-		title: 'Review billing documentation',
-		impact: 'Improve customer self-service success',
-		priority: 'Medium',
-	},
-];
-
-export function RecommendedActionsCard() {
+export function RecommendedActionsCard({ recommendations }: RecommendedActionsCardProps) {
 	return (
 		<div className="rounded-xl border bg-card shadow-sm">
 			<div className="flex items-center gap-2 border-b px-6 py-4">

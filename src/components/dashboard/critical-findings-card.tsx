@@ -2,39 +2,13 @@ import { AlertTriangle, ArrowRight, Clock3, ShieldCheck } from 'lucide-react';
 
 import { EmptyState } from './empty-state';
 
-interface Finding {
-	id: number;
-	title: string;
-	severity: 'Critical' | 'High' | 'Medium';
-	confidence: number;
-	detected: string;
+import type { Finding } from '@/lib/dashboard/dashboard';
+
+interface CriticalFindingsCardProps {
+	findings: Finding[];
 }
 
-const findings: Finding[] = [
-	{
-		id: 1,
-		title: 'Checkout payment failures increased 42%',
-		severity: 'Critical',
-		confidence: 94,
-		detected: '18 minutes ago',
-	},
-	{
-		id: 2,
-		title: 'Refund requests increasing after deployment',
-		severity: 'High',
-		confidence: 88,
-		detected: '1 hour ago',
-	},
-	{
-		id: 3,
-		title: 'Missing cancellation policy documentation',
-		severity: 'Medium',
-		confidence: 91,
-		detected: 'Today',
-	},
-];
-
-export function CriticalFindingsCard() {
+export function CriticalFindingsCard({ findings }: CriticalFindingsCardProps) {
 	return (
 		<div className="rounded-xl border bg-card shadow-sm">
 			<div className="flex items-center justify-between border-b px-6 py-4">
