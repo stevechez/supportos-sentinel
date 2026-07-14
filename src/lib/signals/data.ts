@@ -4,6 +4,13 @@ import { getCurrentMembership } from '@/lib/dashboard/dashboard';
 
 import { getConnections } from './connections';
 import { detectSignalPatterns, type SignalPattern } from './patterns';
+import {
+	buildFrequentQuestions,
+	buildResolutionMetrics,
+	type FrequentQuestion,
+	type ResolutionMetrics,
+	type ResolutionTicket,
+} from './resolution';
 import { SIGNAL_SOURCE_LABELS, type SignalSource } from './sources';
 import type { OperationalSignal } from './types';
 
@@ -180,4 +187,57 @@ export async function getConnectedSourcesOverview(): Promise<ConnectedSourceStat
 			actionable: false,
 		},
 	];
+}
+
+export interface ResolutionOverview {
+	metrics: ResolutionMetrics;
+	frequentQuestions: FrequentQuestion[];
+}
+
+/** Same bounded window sync.ts already uses -- this reads the same recent slice of tickets, not a full-table export. */
+const RESOLUTION_TICKET_LIMIT = 200;
+
+/**
+ * Phase 15C/15D: reads this organization's tickets directly (RLS-scoped,
+ * same as every other read in this file) and turns their existing
+ * resolution-outcome columns into the AI Resolution Rate / Escalations /
+ * Knowledge Reuse / Frequently Asked Questions metrics Workstream 15D
+ * asks for. A second, independent read from getSignalsOverview()'s --
+ * signals are derived facts about patterns, this is a direct read of the
+ * ticket data those signals were derived from, needed because signals
+ * don't carry decision_path/assignee_id at all.
+ */
+export async function getResolutionOverview(): Promise<ResolutionOverview | null> {
+	const membership = await getCurrentMembership();
+	if (!membership) {
+		return null;
+	}
+
+	const supabase = await createClient();
+
+	const { data, error } = await supabase
+		.from('tickets')
+		.select('id, subject, status, ai_resolved, decision_path, assignee_id')
+		.eq('organization_id', membership.organizationId)
+		.order('created_at', { ascending: false })
+		.limit(RESOLUTION_TICKET_LIMIT);
+
+	if (error) {
+		console.error('[signals] fetching resolution overview:', error);
+		return { metrics: buildResolutionMetrics([]), frequentQuestions: [] };
+	}
+
+	const tickets: ResolutionTicket[] = (data ?? []).map(row => ({
+		id: row.id,
+		subject: row.subject,
+		status: row.status,
+		aiResolved: row.ai_resolved,
+		decisionPath: row.decision_path,
+		assigneeId: row.assignee_id,
+	}));
+
+	return {
+		metrics: buildResolutionMetrics(tickets),
+		frequentQuestions: buildFrequentQuestions(tickets),
+	};
 }
