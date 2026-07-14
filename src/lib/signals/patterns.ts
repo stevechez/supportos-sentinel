@@ -111,6 +111,7 @@ const TYPE_TO_FINDING_CATEGORY: Record<SignalType, string> = {
 	knowledge_gap: 'knowledge_gap',
 	customer_feedback: 'customer_sentiment',
 	metric: 'technical',
+	ticket_volume: 'technical',
 };
 
 export interface DerivedFinding {

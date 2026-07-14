@@ -8,10 +8,14 @@ import { getCurrentMembership } from '@/lib/dashboard/dashboard';
 
 import { ingestSignal, SignalIngestError } from './ingest';
 import { buildPattern, MIN_RECURRENCE, deriveFindingFromPattern } from './patterns';
+import { syncSupportOsSignals, SignalSyncError } from './sync';
 import { SignalValidationError, type OperationalSignal, type RawSignalInput } from './types';
 
 export type AddSignalResult = { ok: true; signal: OperationalSignal } | { ok: false; error: string };
 export type CreateFindingFromPatternResult = { ok: true; findingId: string } | { ok: false; error: string };
+export type SyncSupportOsSignalsResult =
+	| { ok: true; newSignalCount: number }
+	| { ok: false; error: string };
 
 /**
  * Server Action behind the "+ Add Signal" form (Phase 8C). Every signal,
@@ -79,6 +83,7 @@ export async function createFindingFromPatternAction(
 			id: row.id,
 			type: row.type as OperationalSignal['type'],
 			source: row.source,
+			sourceRef: row.source_ref,
 			title: row.title,
 			content: row.content,
 			severity: row.severity as OperationalSignal['severity'],
@@ -127,5 +132,33 @@ export async function createFindingFromPatternAction(
 	} catch (error) {
 		console.error('[signals] unexpected error creating finding from pattern:', error);
 		return { ok: false, error: 'Something went wrong. Please try again.' };
+	}
+}
+
+/**
+ * Server Action behind "Sync Now" on the Connected Sources card
+ * (Phase 9D). Pulls this org's SupportOS tickets and upserts the signals
+ * they produce -- see src/lib/signals/sync.ts. A manual pull, not a
+ * webhook or background job, per the phase's explicit "no real-time
+ * streaming infrastructure" scope.
+ */
+export async function syncSupportOsSignalsAction(): Promise<SyncSupportOsSignalsResult> {
+	try {
+		const membership = await getCurrentMembership();
+		if (!membership) {
+			return { ok: false, error: "We couldn't verify your organization. Please try again." };
+		}
+
+		const supabase = await createClient();
+		const { newSignals } = await syncSupportOsSignals(supabase, membership.organizationId);
+
+		revalidatePath('/dashboard');
+		return { ok: true, newSignalCount: newSignals.length };
+	} catch (error) {
+		if (error instanceof SignalSyncError) {
+			return { ok: false, error: error.message };
+		}
+		console.error('[signals] unexpected error syncing SupportOS signals:', error);
+		return { ok: false, error: 'Something went wrong syncing with SupportOS. Please try again.' };
 	}
 }

@@ -10,17 +10,19 @@ import { AiExecutiveBriefCard } from '@/components/dashboard/ai-executive-brief-
 import { ExecutiveTimelineCard } from '@/components/dashboard/executive-timeline-card';
 import { RecentImprovementsCard } from '@/components/dashboard/recent-improvements-card';
 import { OperationalSignalsCard } from '@/components/dashboard/operational-signals-card';
+import { ConnectedSourcesCard } from '@/components/dashboard/connected-sources-card';
 import { EmptyState } from '@/components/dashboard/empty-state';
 
 import { Activity, AlertTriangle, Building2, ClipboardList } from 'lucide-react';
 
 import { getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
-import { getSignalsOverview } from '@/lib/signals/data';
+import { getSignalsOverview, getConnectedSourcesOverview } from '@/lib/signals/data';
 
 export default async function DashboardPage() {
-	const [data, signalsOverview] = await Promise.all([
+	const [data, signalsOverview, connectedSources] = await Promise.all([
 		getExecutiveDashboardData(),
 		getSignalsOverview(),
+		getConnectedSourcesOverview(),
 	]);
 
 	if (!data) {
@@ -124,11 +126,17 @@ export default async function DashboardPage() {
 					<ExecutiveTimelineCard events={timeline} />
 				</div>
 
-				{/* Operational Signals (Phase 8) */}
-				<OperationalSignalsCard
-					signals={signalsOverview?.signals ?? []}
-					patterns={signalsOverview?.patterns ?? []}
-				/>
+				{/* Operational Signals (Phase 8) + Connected Sources (Phase 9) */}
+				<div className="grid gap-6 lg:grid-cols-3">
+					<div className="lg:col-span-2">
+						<OperationalSignalsCard
+							signals={signalsOverview?.signals ?? []}
+							patterns={signalsOverview?.patterns ?? []}
+						/>
+					</div>
+
+					<ConnectedSourcesCard sources={connectedSources ?? []} />
+				</div>
 			</div>
 		</>
 	);

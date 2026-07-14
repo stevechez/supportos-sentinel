@@ -7,7 +7,13 @@
 // shape. Sentinel's analysis engine never has to know where a signal came
 // from, only what it says.
 
-export type SignalType = 'ticket' | 'conversation' | 'knowledge_gap' | 'customer_feedback' | 'metric';
+export type SignalType =
+	| 'ticket'
+	| 'conversation'
+	| 'knowledge_gap'
+	| 'customer_feedback'
+	| 'metric'
+	| 'ticket_volume';
 
 export const SIGNAL_TYPES: SignalType[] = [
 	'ticket',
@@ -15,6 +21,7 @@ export const SIGNAL_TYPES: SignalType[] = [
 	'knowledge_gap',
 	'customer_feedback',
 	'metric',
+	'ticket_volume',
 ];
 
 export const SIGNAL_TYPE_LABELS: Record<SignalType, string> = {
@@ -23,6 +30,12 @@ export const SIGNAL_TYPE_LABELS: Record<SignalType, string> = {
 	knowledge_gap: 'Knowledge Gap',
 	customer_feedback: 'Customer Feedback',
 	metric: 'Metric',
+	// Phase 9C: an aggregate insight over several tickets ("Increase in
+	// password reset tickets"), not a single ticket event. This is a new
+	// *type value* on the existing signals table, not a new table or a
+	// bespoke detector -- it flows through the same normalize/ingest/
+	// pattern-detection path as every other signal type.
+	ticket_volume: 'Ticket Volume',
 };
 
 export type SignalSeverity = 'critical' | 'high' | 'medium' | 'low';
@@ -32,6 +45,8 @@ export interface OperationalSignal {
 	id: string;
 	type: SignalType;
 	source: string;
+	/** Phase 9A: a connector's stable reference for this signal (e.g. "ticket:<id>"), used to upsert idempotently. Null for manual entry. */
+	sourceRef: string | null;
 	title: string;
 	content: string | null;
 	severity: SignalSeverity | null;
@@ -48,6 +63,7 @@ export interface OperationalSignal {
 export interface RawSignalInput {
 	type: string;
 	source?: string;
+	sourceRef?: string | null;
 	title: string;
 	content?: string | null;
 	severity?: string | null;
@@ -57,6 +73,7 @@ export interface RawSignalInput {
 export interface NormalizedSignalInput {
 	type: SignalType;
 	source: string;
+	sourceRef: string | null;
 	title: string;
 	content: string | null;
 	severity: SignalSeverity | null;

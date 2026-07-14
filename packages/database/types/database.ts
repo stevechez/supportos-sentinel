@@ -1278,6 +1278,7 @@ export type Database = {
 					organization_id: string;
 					severity: string | null;
 					source: string;
+					source_ref: string | null;
 					title: string;
 					type: string;
 				};
@@ -1289,6 +1290,7 @@ export type Database = {
 					organization_id: string;
 					severity?: string | null;
 					source?: string;
+					source_ref?: string | null;
 					title: string;
 					type: string;
 				};
@@ -1300,6 +1302,7 @@ export type Database = {
 					organization_id?: string;
 					severity?: string | null;
 					source?: string;
+					source_ref?: string | null;
 					title?: string;
 					type?: string;
 				};

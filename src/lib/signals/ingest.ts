@@ -19,6 +19,7 @@ function toOperationalSignal(row: {
 	id: string;
 	type: string;
 	source: string;
+	source_ref: string | null;
 	title: string;
 	content: string | null;
 	severity: string | null;
@@ -29,6 +30,7 @@ function toOperationalSignal(row: {
 		id: row.id,
 		type: row.type as OperationalSignal['type'],
 		source: row.source,
+		sourceRef: row.source_ref,
 		title: row.title,
 		content: row.content,
 		severity: row.severity as OperationalSignal['severity'],
@@ -59,6 +61,7 @@ export async function ingestSignal(
 			organization_id: organizationId,
 			type: normalized.type,
 			source: normalized.source,
+			source_ref: normalized.sourceRef,
 			title: normalized.title,
 			content: normalized.content,
 			severity: normalized.severity,
@@ -71,4 +74,47 @@ export async function ingestSignal(
 	}
 
 	return toOperationalSignal(data);
+}
+
+/**
+ * Batch-ingests signals from a connector (Phase 9B), upserting on
+ * (organization_id, source_ref) so re-running a sync never creates
+ * duplicate signals for the same underlying event -- a signal already
+ * seen is silently skipped rather than re-inserted or overwritten.
+ * Returns only the rows that were newly inserted (PostgREST returns no
+ * row for a conflict that was ignored), so callers can report "N new
+ * signals" accurately.
+ */
+export async function ingestSignalBatch(
+	supabase: SupabaseClient,
+	organizationId: string,
+	rawSignals: RawSignalInput[],
+): Promise<OperationalSignal[]> {
+	if (rawSignals.length === 0) {
+		return [];
+	}
+
+	const rows = rawSignals.map(raw => {
+		const normalized = normalizeSignalInput(raw);
+		return {
+			organization_id: organizationId,
+			type: normalized.type,
+			source: normalized.source,
+			source_ref: normalized.sourceRef,
+			title: normalized.title,
+			content: normalized.content,
+			severity: normalized.severity,
+		};
+	});
+
+	const { data, error } = await supabase
+		.from('sentinel_signals')
+		.upsert(rows, { onConflict: 'organization_id,source_ref', ignoreDuplicates: true })
+		.select('*');
+
+	if (error) {
+		throw new SignalIngestError('Could not save signals from this sync. Please try again.', error);
+	}
+
+	return (data ?? []).map(toOperationalSignal);
 }

@@ -160,6 +160,7 @@ export async function explainSignalPatternAction(
 			id: row.id,
 			type: row.type as OperationalSignal['type'],
 			source: row.source,
+			sourceRef: row.source_ref,
 			title: row.title,
 			content: row.content,
 			severity: row.severity as OperationalSignal['severity'],

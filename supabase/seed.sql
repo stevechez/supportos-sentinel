@@ -135,3 +135,42 @@ begin
 
   end loop;
 end $$;
+
+-- Phase 9: the SupportOS -> Sentinel connector demo.
+--
+-- The password reset finding above was resolved days ago. These two new
+-- tickets tell the next chapter of the same story: the issue is
+-- resurfacing in real SupportOS ticket data, which is exactly what the
+-- Phase 9B connector (src/lib/signals/adapters/supportos.ts) is meant to
+-- notice on its first sync -- three tickets with the same subject line is
+-- enough for Phase 8's deterministic pattern detector to flag a
+-- recurrence, without any change to that detection code.
+--
+-- Only runs for organizations that already have real SupportOS ticket
+-- data (the `tickets` table is Connect/Support-owned, not Sentinel's --
+-- this seed does not create ticket data for an org that has none) and
+-- haven't already been seeded with the follow-up tickets.
+do $$
+declare
+  org record;
+begin
+  for org in select id from organizations loop
+
+    if not exists (select 1 from tickets where organization_id = org.id) then
+      continue;
+    end if;
+
+    if (
+      select count(*) from tickets
+      where organization_id = org.id and subject = 'Can''t reset my password'
+    ) >= 3 then
+      continue;
+    end if;
+
+    insert into tickets (organization_id, subject, status, priority, tags, ai_resolved, channel, created_at)
+    values
+      (org.id, 'Can''t reset my password', 'open', 'medium', array['technical'], false, 'email', now() - interval '2 days'),
+      (org.id, 'Can''t reset my password', 'open', 'medium', array['technical'], false, 'web', now() - interval '4 hours');
+
+  end loop;
+end $$;

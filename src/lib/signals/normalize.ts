@@ -58,6 +58,7 @@ export function normalizeSignalInput(raw: RawSignalInput): NormalizedSignalInput
 	return {
 		type,
 		source,
+		sourceRef: raw.sourceRef?.trim() || null,
 		title: title.slice(0, MAX_TITLE_LENGTH),
 		content: content ? content.slice(0, MAX_CONTENT_LENGTH) : null,
 		severity,
