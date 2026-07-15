@@ -41,7 +41,7 @@ export function MobileSidebar() {
 					</SheetTitle>
 
 					<p className="text-xs text-muted-foreground">
-						Customer Intelligence Platform
+						Find recurring issues. Improve support.
 					</p>
 				</SheetHeader>
 

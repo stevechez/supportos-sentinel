@@ -28,7 +28,7 @@ const faqs = [
 	{
 		question: 'What happens if AI is unavailable?',
 		answer:
-			'Findings, health scores, priorities, and trends are all calculated by deterministic rules, not AI — so they keep working normally even if the AI explanation service is down. The only thing affected is the optional plain-language "Explain this" feature, which you can simply try again later.',
+			'Findings, health scores, priorities, and trends are all calculated using fixed rules, not AI — so they keep working normally even if the AI explanation service is down. The only thing affected is the optional plain-language "Explain this" feature, which you can simply try again later.',
 	},
 	{
 		question: 'Do I need technical expertise to set this up?',

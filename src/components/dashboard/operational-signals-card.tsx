@@ -147,7 +147,7 @@ function PatternRow({ pattern, improvementEvents }: { pattern: SignalPattern; im
 				<div>
 					<h3 className="text-sm font-medium text-foreground">{pattern.title}</h3>
 					<p className="mt-1 text-xs text-muted-foreground">
-						{SIGNAL_TYPE_LABELS[pattern.type]} · {pattern.recurrenceCount} signals over{' '}
+						{SIGNAL_TYPE_LABELS[pattern.type]} · seen {pattern.recurrenceCount} times over{' '}
 						{pattern.daySpan} day{pattern.daySpan === 1 ? '' : 's'}
 					</p>
 				</div>
@@ -298,7 +298,7 @@ function AddSignalSheet({
 					</div>
 
 					<Button type="submit" className="w-full" disabled={isPending}>
-						{isPending ? 'Saving…' : 'Save Signal'}
+						{isPending ? 'Saving…' : 'Save'}
 					</Button>
 				</form>
 			</SheetContent>

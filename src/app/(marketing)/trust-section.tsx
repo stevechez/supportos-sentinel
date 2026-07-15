@@ -14,7 +14,7 @@ const principles = [
 		icon: Sparkles,
 		title: 'AI assists. It doesn’t decide.',
 		description:
-			'Every finding, score, and priority Sentinel shows you is calculated by deterministic rules first. AI is only ever asked to explain a conclusion Sentinel already reached — it never creates a finding or sets a priority on its own.',
+			'Every finding, score, and priority Sentinel shows you is calculated using the same fixed rules every time. AI is only ever asked to explain a conclusion Sentinel already reached — it never creates a finding or sets a priority on its own.',
 	},
 	{
 		icon: Scale,

@@ -22,7 +22,7 @@ const sections = [
 		items: [
 			{
 				heading: 'AI explains. It doesn’t decide.',
-				body: 'Every finding, health score, priority, and trend Sentinel shows you is calculated by deterministic rules first. AI is only ever asked to explain a conclusion Sentinel already reached, in plain language.',
+				body: 'Every finding, health score, priority, and trend Sentinel shows you is calculated using the same fixed rules every time -- never guessed by AI. AI is only ever asked to explain a conclusion Sentinel already reached, in plain language.',
 			},
 			{
 				heading: 'AI does not make operational decisions.',
@@ -62,7 +62,7 @@ const sections = [
 			},
 			{
 				heading: 'If AI is temporarily unavailable,',
-				body: 'the deterministic parts of Sentinel — findings, scores, priorities, trends — are unaffected, since AI is never in the critical path for calculating them. Only the optional plain-language explanation is delayed, and you can try again.',
+				body: 'the parts of Sentinel that use fixed rules -- findings, scores, priorities, trends -- are unaffected, since AI is never required to calculate them. Only the optional plain-language explanation is delayed, and you can try again.',
 			},
 			{
 				heading: 'If something goes wrong on a page,',

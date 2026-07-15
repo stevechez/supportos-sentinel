@@ -10,7 +10,7 @@ export function Sidebar() {
 					</h1>
 
 					<p className="text-xs text-muted-foreground">
-						Customer Intelligence Platform
+						Find recurring issues. Improve support.
 					</p>
 				</div>
 			</div>

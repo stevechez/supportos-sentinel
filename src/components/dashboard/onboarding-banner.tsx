@@ -49,6 +49,15 @@ export function OnboardingBanner() {
 				</Button>
 			</div>
 
+			{/* Phase 19B -- the founder walkthrough (docs/product/founder-pilot-walkthrough.md)
+				found that a first-time user has no way to know "SupportOS" means their
+				existing ticketing tool until someone explains it out loud. This line
+				says it in the UI instead. */}
+			<p className="mx-auto mt-3 max-w-md text-xs text-muted-foreground">
+				SupportOS is the ticketing connection -- for most teams, that&apos;s your existing
+				Zendesk, Intercom, or Freshdesk data.
+			</p>
+
 			{error && <p className="mt-3 text-sm text-destructive">{error}</p>}
 		</div>
 	);

@@ -25,7 +25,7 @@ export function ExecutiveSummaryCard({
 				</div>
 
 				<p className="mt-1 text-sm text-muted-foreground">
-					Rule-based operational briefing
+					A plain-language summary of what matters most right now
 				</p>
 			</div>
 

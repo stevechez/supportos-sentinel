@@ -24,7 +24,7 @@ export function ConnectedSourcesCard({ sources }: ConnectedSourcesCardProps) {
 				<Waves className="h-5 w-5 text-primary" aria-hidden="true" />
 				<div>
 					<h2 className="font-heading text-lg text-foreground">Connected Sources</h2>
-					<p className="text-sm text-muted-foreground">Where Sentinel&apos;s signals are coming from</p>
+					<p className="text-sm text-muted-foreground">Where Sentinel gets your support data from</p>
 				</div>
 			</div>
 
@@ -51,8 +51,8 @@ function SourceRow({ source }: { source: ConnectedSourceStatus }) {
 			if (result.ok) {
 				setLastResult(
 					result.newSignalCount === 0
-						? 'Up to date -- no new signals.'
-						: `Synced ${result.newSignalCount} new signal${result.newSignalCount === 1 ? '' : 's'}.`,
+						? 'Up to date -- nothing new.'
+						: `Synced ${result.newSignalCount} new item${result.newSignalCount === 1 ? '' : 's'}.`,
 				);
 				router.refresh();
 			} else {
@@ -81,7 +81,7 @@ function SourceRow({ source }: { source: ConnectedSourceStatus }) {
 						<p className="mt-0.5 text-xs text-muted-foreground">
 							{source.state === 'connected' ? 'Connected' : 'Not connected'}
 							{' · '}
-							{source.signalCount} signal{source.signalCount === 1 ? '' : 's'} received
+							{source.signalCount} item{source.signalCount === 1 ? '' : 's'} analyzed
 							{source.lastSyncedAt && <> · Last sync {relativeTime(source.lastSyncedAt)}</>}
 						</p>
 					)}

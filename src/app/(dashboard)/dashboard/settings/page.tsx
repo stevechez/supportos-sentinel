@@ -121,11 +121,11 @@ export default async function SettingsPage() {
 						<div className="space-y-3 rounded-2xl border border-border bg-card p-6 text-sm leading-6 text-muted-foreground">
 							<p>
 								<span className="font-medium text-foreground">
-									Sentinel uses AI to explain operational insights it has already found.
+									Sentinel uses AI to explain insights it has already found.
 								</span>{' '}
-								Every finding, score, priority, and trend is calculated by deterministic rules
-								first -- AI is only ever asked to explain a conclusion Sentinel already reached, in
-								plain language.
+								Every finding, score, priority, and trend is calculated using the same fixed
+								rules every time -- never guessed by AI. AI is only ever asked to explain a
+								conclusion Sentinel already reached, in plain language.
 							</p>
 							<p>
 								<span className="font-medium text-foreground">AI does not make operational decisions.</span>{' '}
