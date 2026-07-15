@@ -49,6 +49,31 @@ feedback-review UI was built in this phase -- see `pilot-dashboard.md` for
 how feedback volume and recent items are surfaced for internal visibility
 without a new page.
 
+## Update (Phase 20D) -- turning feedback into decisions
+
+Two founder-side triage columns were added (migration
+`20260715091000_sentinel_customer_feedback_decision.sql`): `decision` and
+`decision_notes`. These are set by the founder after reading an item, never
+collected from the customer -- the capture surfaces above are unchanged.
+
+**Decision categories:** Build, Fix, Document, Ignore, Investigate. Set
+from a dropdown in `/dashboard/founder`'s feedback triage section
+(`src/components/founder/feedback-decision-select.tsx`), via the
+founder-gated `setFeedbackDecisionAction`
+(`src/lib/founder/actions.ts`) -- the first mutation on this table that
+isn't the customer's own submission.
+
+The "Problem / Frequency / Impact / Requested solution" framing from the
+Phase 20 handoff is deliberately not four more structured fields. Problem
+and requested solution are already the `message` field in the customer's
+own words -- adding separate boxes would ask them to fill out a form
+instead of just telling us what happened. Frequency and impact are better
+read across feedback items (does the same theme recur across
+organizations?) than logged per item by the customer, who usually can't
+judge frequency across the whole customer base anyway. `decision_notes` is
+where a founder records that reasoning when it's not obvious from the
+decision alone.
+
 ## What was deliberately not built
 
 - No NPS score, no survey, no scheduled prompt asking for a rating.
