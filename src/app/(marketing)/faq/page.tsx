@@ -18,7 +18,7 @@ const faqs = [
 	{
 		question: 'How do I connect my data?',
 		answer:
-			'From your dashboard, click "Connect SupportOS" (or "Sync Now" if you\'ve connected before). That single click reads your existing support tickets and conversations and turns them into signals Sentinel can analyze — there\'s no separate setup step, no API keys to paste in, and no technical configuration.',
+			'From your dashboard, click "Connect SupportOS" (or "Sync Now" if you\'ve connected before). That single click reads your existing support tickets and conversations and turns them into data Sentinel can analyze — there\'s no separate setup step, no API keys to paste in, and no technical configuration.',
 	},
 	{
 		question: 'What happens if a sync fails?',

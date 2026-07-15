@@ -175,7 +175,7 @@ function FindingRow({
 									<div className="space-y-1">
 										<p className="flex items-center gap-1.5 text-xs text-muted-foreground">
 											<MessagesSquare className="h-3.5 w-3.5" aria-hidden="true" />
-											{source.signalCount} signal{source.signalCount === 1 ? '' : 's'} from these conversations:
+											Found across {source.signalCount} observation{source.signalCount === 1 ? '' : 's'} in these conversations:
 										</p>
 										<ul className="space-y-0.5">
 											{source.tickets.map(ticket => (

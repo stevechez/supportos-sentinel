@@ -73,7 +73,7 @@ const highlights = [
 	{
 		icon: MessagesSquare,
 		title: '142 conversations analyzed',
-		description: 'Every customer conversation Sentinel sees becomes a signal it can learn from.',
+		description: 'Every customer conversation Sentinel sees becomes something it can learn from.',
 	},
 	{
 		icon: TrendingUp,

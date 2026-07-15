@@ -94,7 +94,7 @@ export default async function FindingsPage() {
 													</p>
 
 													<p className="mt-1.5 text-xs text-muted-foreground">
-														Built from {source.signalCount} signal{source.signalCount === 1 ? '' : 's'} across these conversations:
+														Found across {source.signalCount} observation{source.signalCount === 1 ? '' : 's'} in these conversations:
 													</p>
 
 													<ul className="mt-2 space-y-1">

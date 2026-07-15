@@ -44,7 +44,7 @@ const sections = [
 			},
 			{
 				heading: 'Your data, your insights.',
-				body: 'Your organization’s conversations and signals are only ever used to produce your organization’s own findings and recommendations — never pooled with other customers’ data or used to train a shared model.',
+				body: 'Your organization’s conversations and activity are only ever used to produce your organization’s own findings and recommendations — never pooled with other customers’ data or used to train a shared model.',
 			},
 			{
 				heading: 'You stay in control.',

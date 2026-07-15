@@ -26,7 +26,7 @@ const principles = [
 		icon: Lock,
 		title: 'Your data stays yours.',
 		description:
-			'Your organization’s conversations and signals are isolated from every other customer’s. Your data is only ever used to produce your organization’s own insights.',
+			'Your organization’s conversations and activity are isolated from every other customer’s. Your data is only ever used to produce your organization’s own insights.',
 	},
 ];
 
