@@ -1,89 +1,107 @@
-import { Bot, Brain, MessageCircle, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { Bot, MessagesSquare, ClipboardList, FileText, BookOpen, ArrowRight } from 'lucide-react';
 
 import { Container } from '@/components/marketing/container';
+import { getResolutionOverview } from '@/lib/signals/data';
 
-const intelligence = [
-	{
-		title: 'Customer Assistant',
-		description:
-			'Helps answer common customer questions and keeps conversations moving.',
-		status: 'Active',
-		detail: 'Helping with customer conversations',
-		icon: MessageCircle,
-	},
-	{
-		title: 'Conversation Intelligence',
-		description:
-			'Identifies trends, recurring questions, and opportunities to improve.',
-		status: 'Active',
-		detail: 'Analyzing customer activity',
-		icon: Brain,
-	},
-	{
-		title: 'Knowledge Assistant',
-		description:
-			'Uses your business information to provide better, more accurate answers.',
-		status: 'Ready',
-		detail: 'Learning from your information',
-		icon: Bot,
-	},
+// Phase 21B/21E rewrite. The Phase 21A audit flagged this page as the
+// single most misleading surface in the product: it showed three
+// hardcoded "Active" / "Ready" assistant cards with no data behind them --
+// nothing in this app runs a live "Customer Assistant" or "Knowledge
+// Assistant" process. Rather than delete the route (it may be bookmarked,
+// and the URL itself is reasonable), this rewrite replaces the fake status
+// cards with an honest explanation of what actually happens -- deterministic
+// rules over your own ticket/conversation data, with AI only ever
+// explaining what those rules found -- plus direct links to where that
+// output lives. No new capability is implied here that isn't real
+// elsewhere in the product.
+
+const links = [
+	{ href: '/dashboard/conversations', label: 'Conversations', description: 'What happened in each recent conversation', icon: MessagesSquare },
+	{ href: '/findings', label: 'Findings', description: 'Patterns Sentinel has flagged', icon: FileText },
+	{ href: '/recommendations', label: 'Recommendations', description: 'What to do about them', icon: ClipboardList },
+	{ href: '/dashboard/knowledge-gaps', label: 'Knowledge Gaps', description: 'Where documentation is missing', icon: BookOpen },
 ];
 
-export default function IntelligencePage() {
+export default async function IntelligencePage() {
+	const resolution = await getResolutionOverview();
+	const metrics = resolution?.metrics;
+
 	return (
 		<section className="py-10">
 			<Container>
 				<div className="max-w-3xl">
 					<p className="text-sm font-medium uppercase tracking-wide text-brand">
-						AI Assistants
+						How Sentinel&rsquo;s AI works
 					</p>
 
 					<h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
-						Your AI assistant working behind the scenes
+						Rules detect. AI explains. You decide.
 					</h1>
 
 					<p className="mt-4 text-muted-foreground">
-						Sentinel handles routine customer interactions, finds patterns, and
-						helps you understand what matters.
+						Sentinel doesn&rsquo;t run a hidden assistant in the background. It applies
+						the same fixed rules every time to your own ticket and conversation
+						data -- the same rules, in plain sight, every time -- to detect
+						patterns, and only uses AI afterward to explain what those rules
+						found in plain language. AI never decides anything on your behalf
+						and never changes your data.
 					</p>
 				</div>
 
-				<div className="mt-10 space-y-5">
-					{intelligence.map(item => {
+				{metrics && metrics.totalTickets > 0 && (
+					<div className="mt-8 grid grid-cols-3 gap-4 rounded-2xl border border-border bg-card p-6 text-center">
+						<div>
+							<div className="font-heading text-2xl text-foreground">
+								{metrics.aiResolutionRate !== null ? `${metrics.aiResolutionRate}%` : '—'}
+							</div>
+							<div className="mt-1 text-xs text-muted-foreground">resolved without a human</div>
+						</div>
+						<div>
+							<div className="font-heading text-2xl text-foreground">{metrics.humanEscalatedCount}</div>
+							<div className="mt-1 text-xs text-muted-foreground">escalated to a person</div>
+						</div>
+						<div>
+							<div className="font-heading text-2xl text-foreground">{metrics.knowledgeReuseCount}</div>
+							<div className="mt-1 text-xs text-muted-foreground">answered from existing docs</div>
+						</div>
+					</div>
+				)}
+
+				<div className="mt-10 space-y-3">
+					<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+						Where this shows up
+					</p>
+
+					{links.map(item => {
 						const Icon = item.icon;
-
 						return (
-							<div
-								key={item.title}
-								className="rounded-2xl border border-border bg-card p-6 transition-colors hover:border-brand/30"
+							<Link
+								key={item.href}
+								href={item.href}
+								className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 transition-colors hover:border-brand/30"
 							>
-								<div className="flex items-start gap-4">
+								<div className="flex items-center gap-4">
 									<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10">
-										<Icon className="h-5 w-5 text-brand" />
+										<Icon className="h-5 w-5 text-brand" aria-hidden="true" />
 									</div>
-
-									<div className="flex-1">
-										<div className="flex flex-col justify-between gap-2 sm:flex-row">
-											<h2 className="font-medium text-foreground">
-												{item.title}
-											</h2>
-
-											<span className="text-sm text-brand">{item.status}</span>
-										</div>
-
-										<p className="mt-2 text-sm leading-6 text-muted-foreground">
-											{item.description}
-										</p>
-
-										<div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-											<Sparkles className="h-4 w-4 text-brand" />
-											{item.detail}
-										</div>
+									<div>
+										<p className="font-medium text-foreground">{item.label}</p>
+										<p className="text-sm text-muted-foreground">{item.description}</p>
 									</div>
 								</div>
-							</div>
+								<ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+							</Link>
 						);
 					})}
+				</div>
+
+				<div className="mt-10 flex items-start gap-3 rounded-2xl border border-border bg-muted/40 p-5">
+					<Bot className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+					<p className="text-sm text-muted-foreground">
+						Read the full breakdown of what AI does and doesn&rsquo;t do in Sentinel on
+						the <Link href="/trust" className="font-medium text-brand hover:underline">Trust Center</Link>.
+					</p>
 				</div>
 			</Container>
 		</section>
