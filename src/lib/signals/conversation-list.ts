@@ -20,12 +20,15 @@ import { getCurrentMembership } from '@/lib/dashboard/dashboard';
 export type ConversationOutcome = 'ai_handled' | 'escalated' | 'unresolved' | 'resolved';
 
 export interface ConversationListItem {
+	/** The ticket id. Deliberately also serves as "the linked ticket" -- in this schema a conversation and its ticket are the same row (see docs/architecture/platform-audit.md), so there's no separate id to link to. */
 	id: string;
 	subject: string;
 	status: string;
 	outcome: ConversationOutcome;
+	customerName: string | null;
 	messageCount: number;
 	lastMessageAt: string | null;
+	lastMessagePreview: string | null;
 	createdAt: string;
 }
 
@@ -69,7 +72,7 @@ export async function getRecentConversations(): Promise<ConversationListItem[] |
 
 	const { data: tickets, error: ticketsError } = await supabase
 		.from('tickets')
-		.select('id, subject, status, ai_resolved, created_at')
+		.select('id, subject, status, ai_resolved, customer_id, created_at')
 		.eq('organization_id', membership.organizationId)
 		.order('created_at', { ascending: false })
 		.limit(CONVERSATION_LIST_LIMIT);
@@ -81,40 +84,57 @@ export async function getRecentConversations(): Promise<ConversationListItem[] |
 
 	const ticketRows = tickets ?? [];
 	const ticketIds = ticketRows.map(row => row.id);
+	const customerIds = [...new Set(ticketRows.map(row => row.customer_id).filter((id): id is string => Boolean(id)))];
 
-	const { data: messages, error: messagesError } =
+	const [{ data: messages, error: messagesError }, { data: customers, error: customersError }] = await Promise.all([
 		ticketIds.length === 0
-			? { data: [] as { ticket_id: string; sender: string; created_at: string }[], error: null }
-			: await supabase
+			? Promise.resolve({ data: [] as { ticket_id: string; sender: string; body: string | null; created_at: string }[], error: null })
+			: supabase
 					.from('messages')
-					.select('ticket_id, sender, created_at')
+					.select('ticket_id, sender, body, created_at')
 					.eq('organization_id', membership.organizationId)
-					.in('ticket_id', ticketIds);
+					.in('ticket_id', ticketIds),
+		customerIds.length === 0
+			? Promise.resolve({ data: [] as { id: string; name: string | null }[], error: null })
+			: supabase
+					.from('customers')
+					.select('id, name')
+					.eq('organization_id', membership.organizationId)
+					.in('id', customerIds),
+	]);
 
 	if (messagesError) {
 		console.error('[conversations] fetching messages:', messagesError);
 	}
+	if (customersError) {
+		console.error('[conversations] fetching customers:', customersError);
+	}
 
-	const messagesByTicket = new Map<string, { sender: string; createdAt: string }[]>();
+	const messagesByTicket = new Map<string, { sender: string; body: string | null; createdAt: string }[]>();
 	for (const row of messages ?? []) {
 		const list = messagesByTicket.get(row.ticket_id) ?? [];
-		list.push({ sender: row.sender, createdAt: row.created_at });
+		list.push({ sender: row.sender, body: row.body, createdAt: row.created_at });
 		messagesByTicket.set(row.ticket_id, list);
 	}
 
+	const nameByCustomer = new Map((customers ?? []).map(row => [row.id, row.name]));
+
 	return ticketRows.map(row => {
 		const threadMessages = messagesByTicket.get(row.id) ?? [];
-		const lastMessageAt = threadMessages.length
-			? threadMessages.reduce((latest, m) => (m.createdAt > latest ? m.createdAt : latest), threadMessages[0].createdAt)
-			: null;
+		const sorted = [...threadMessages].sort(
+			(a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+		);
+		const lastMessage = sorted[sorted.length - 1] ?? null;
 
 		return {
 			id: row.id,
 			subject: row.subject,
 			status: row.status,
 			outcome: classifyOutcome({ status: row.status, aiResolved: row.ai_resolved }, threadMessages),
+			customerName: row.customer_id ? (nameByCustomer.get(row.customer_id) ?? null) : null,
 			messageCount: threadMessages.length,
-			lastMessageAt,
+			lastMessageAt: lastMessage?.createdAt ?? null,
+			lastMessagePreview: lastMessage?.body ?? null,
 			createdAt: row.created_at,
 		};
 	});

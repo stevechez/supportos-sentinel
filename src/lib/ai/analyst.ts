@@ -8,12 +8,14 @@ import type { FirstInsightSummary } from '@/lib/signals/insight';
 import type { SignalPattern } from '@/lib/signals/patterns';
 
 import {
+	buildCustomerAssistantPrompt,
 	buildEmergingRiskExplanationPrompt,
 	buildExecutiveBriefPrompt,
 	buildHistoricalAdvicePrompt,
 	buildImprovementExplanationPrompt,
 	buildSignalPatternExplanationPrompt,
 	buildWelcomeBriefPrompt,
+	CUSTOMER_ASSISTANT_SYSTEM_PROMPT,
 	EMERGING_RISK_ADVISOR_SYSTEM_PROMPT,
 	EXECUTIVE_ANALYST_SYSTEM_PROMPT,
 	HISTORICAL_ADVISOR_SYSTEM_PROMPT,
@@ -23,6 +25,8 @@ import {
 } from './prompts';
 import {
 	AiUnavailableError,
+	type CustomerAnswer,
+	type CustomerQuestionInsight,
 	type EmergingRiskExplanation,
 	type EmergingRiskInsight,
 	type ExecutiveBrief,
@@ -449,4 +453,35 @@ export async function generateEmergingRiskExplanation(
 	}
 
 	return { explanation: parsed.explanation };
+}
+
+function isCustomerAnswer(value: unknown): value is CustomerAnswer {
+	if (!value || typeof value !== 'object') {
+		return false;
+	}
+	const candidate = value as Record<string, unknown>;
+	return typeof candidate.answer === 'string' && candidate.answer.trim().length > 0;
+}
+
+/**
+ * Phase 21D: calls the configured model to answer a customer's question
+ * directly. Unlike every other generate* function in this file, there is
+ * no deterministic pre-computation behind this call -- the model is
+ * actually generating the answer, not explaining one. Same failure-
+ * handling discipline as everywhere else (any failure normalizes to
+ * AiUnavailableError); callers are responsible for writing the resulting
+ * answer to a real, reviewable message row rather than treating it as an
+ * automatic action.
+ */
+export async function generateCustomerAnswer(insight: CustomerQuestionInsight): Promise<CustomerAnswer> {
+	const parsed = await callAnthropicForJson(
+		CUSTOMER_ASSISTANT_SYSTEM_PROMPT,
+		buildCustomerAssistantPrompt(insight),
+	);
+
+	if (!isCustomerAnswer(parsed)) {
+		throw new AiUnavailableError('The AI service returned an unexpected response shape.');
+	}
+
+	return { answer: parsed.answer };
 }

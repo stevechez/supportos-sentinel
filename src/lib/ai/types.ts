@@ -159,6 +159,27 @@ export interface EmergingRiskExplanation {
 }
 
 /**
+ * CustomerQuestionInsight -- the Phase 21D input contract for the AI
+ * Assistant. Deliberately different in kind from every insight above: this
+ * is the first place in the product where the AI generates an original
+ * answer rather than explaining a conclusion the deterministic engine
+ * already reached. There is nothing to compute here -- a customer's
+ * question isn't a metric. The boundary this preserves is narrower but
+ * just as real: the AI answers one question, once: it never decides a
+ * finding, never changes a health score or priority, and every answer it
+ * gives is written to `messages` as a plain, visible, reviewable
+ * conversation -- never applied silently or treated as authoritative.
+ */
+export interface CustomerQuestionInsight {
+	question: string;
+}
+
+/** Phase 21D's output contract -- one plain-language answer, same small/typed discipline as every other AI output here. */
+export interface CustomerAnswer {
+	answer: string;
+}
+
+/**
  * Thrown for any failure in the AI boundary -- missing configuration,
  * network failure, non-200 response, malformed/invalid JSON. Always carries
  * a generic, user-safe message; the real cause is attached for server-side

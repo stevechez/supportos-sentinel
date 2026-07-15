@@ -17,7 +17,7 @@ import { getResolutionOverview } from '@/lib/signals/data';
 // elsewhere in the product.
 
 const links = [
-	{ href: '/dashboard/conversations', label: 'Conversations', description: 'What happened in each recent conversation', icon: MessagesSquare },
+	{ href: '/dashboard/inbox', label: 'Inbox', description: 'What happened in each recent conversation', icon: MessagesSquare },
 	{ href: '/findings', label: 'Findings', description: 'Patterns Sentinel has flagged', icon: FileText },
 	{ href: '/recommendations', label: 'Recommendations', description: 'What to do about them', icon: ClipboardList },
 	{ href: '/dashboard/knowledge-gaps', label: 'Knowledge Gaps', description: 'Where documentation is missing', icon: BookOpen },
@@ -46,6 +46,18 @@ export default async function IntelligencePage() {
 						patterns, and only uses AI afterward to explain what those rules
 						found in plain language. AI never decides anything on your behalf
 						and never changes your data.
+					</p>
+
+					<p className="mt-4 text-muted-foreground">
+						The one exception is the{' '}
+						<Link href="/dashboard/assistant" className="font-medium text-brand hover:underline">
+							AI Assistant
+						</Link>
+						, which answers a customer&rsquo;s question directly rather than
+						explaining a conclusion Sentinel already reached. Its answers are
+						saved as a real, visible conversation in your Inbox -- never
+						applied silently, and it never takes an action on your behalf,
+						only replies in words.
 					</p>
 				</div>
 

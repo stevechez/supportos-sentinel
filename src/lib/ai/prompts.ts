@@ -1,4 +1,5 @@
 import type {
+	CustomerQuestionInsight,
 	EmergingRiskInsight,
 	HistoricalInsight,
 	ImprovementInsight,
@@ -253,5 +254,49 @@ export function buildEmergingRiskExplanationPrompt(insight: EmergingRiskInsight)
 		'Explain why this is worth attention now, based only on the evidence given.',
 		'',
 		EMERGING_RISK_RESPONSE_SCHEMA_INSTRUCTIONS,
+	].join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// Phase 21D -- the AI Assistant.
+//
+// Every prompt above explains a conclusion the deterministic engine
+// already reached. This one is different in kind: a customer is asking a
+// real support question, and there is no prior computation to explain --
+// the model has to actually answer. The boundary that still holds: this
+// prompt never lets the model claim an action was taken ("I've reset your
+// password", "I've escalated this") -- it can only answer in words. Every
+// answer becomes a plain, visible message a human can review afterward
+// (src/lib/assistant/actions.ts writes it to `messages`); nothing here
+// changes a finding, a health score, or any Sentinel output.
+// ---------------------------------------------------------------------------
+
+export const CUSTOMER_ASSISTANT_SYSTEM_PROMPT =
+	'You are a helpful customer support assistant for a small business. A ' +
+	'customer has asked a support question. Answer it helpfully and ' +
+	'concisely, in plain language, as if replying directly to the customer. ' +
+	'You do not have access to this specific business\'s internal ' +
+	'documentation, order history, or account details, so never invent ' +
+	'specifics you cannot know (order numbers, account status, policy ' +
+	'details). If the question needs account-specific information you don\'t ' +
+	'have, say so plainly and suggest what a human agent could help with ' +
+	'instead. Never claim to have taken an action (never say "I\'ve reset ' +
+	'your password" or "I\'ve issued a refund") -- you can only answer in ' +
+	'words, you cannot perform actions. Be warm, brief, and direct.';
+
+const CUSTOMER_ASSISTANT_RESPONSE_SCHEMA_INSTRUCTIONS = `Respond with ONLY a single JSON object, no markdown fences, no commentary before or after it, matching exactly this shape:
+{
+  "answer": string (2-4 sentences, plain language, addressed directly to the customer)
+}`;
+
+export function buildCustomerAssistantPrompt(insight: CustomerQuestionInsight): string {
+	return [
+		'A customer asked this support question:',
+		'',
+		insight.question,
+		'',
+		'Answer it directly, as the support assistant.',
+		'',
+		CUSTOMER_ASSISTANT_RESPONSE_SCHEMA_INSTRUCTIONS,
 	].join('\n');
 }
