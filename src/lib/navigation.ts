@@ -1,62 +1,26 @@
-import {
-	LayoutDashboard,
-	FileText,
-	AlertTriangle,
-	ClipboardList,
-	BookOpen,
-	MessageCircle,
-	Inbox,
-	Settings,
-} from 'lucide-react';
+import { Inbox, Users, Bot, ListChecks, Settings } from 'lucide-react';
 
-// Phase 21B: restructured from a flat seven-item list into grouped
-// sections that match how a customer actually thinks about this product --
-// "my conversations", "my support operations", "what Sentinel found" --
-// instead of a flat list of Sentinel output types. Every href below already
-// existed or is backed by real data (see docs/architecture/unified-customer-
-// operations.md); this is a presentation change, not a new system.
-//
-// "AI Assistants" (formerly /dashboard/intelligence, a static page with
-// hardcoded "Active" labels and no real data behind it -- see the Phase 21A
-// audit) has been removed from navigation. The route itself still exists,
-// rewritten to be honest about what's real, but it's no longer a primary
-// nav item since it described capabilities rather than doing anything a
-// user could act on.
+// Phase 21/v2 (superseding the earlier Phase 21B grouped nav from this
+// same session): the handoff for this phase specifies an exact flat
+// five-item navigation -- Inbox / Customers / AI Assistant / Insights /
+// Settings -- matching how a customer thinks about one platform rather
+// than a list of Sentinel output types. "Overview" (the landing page,
+// Phase 21F's Customer Operations Home) isn't a nav item by design here --
+// it's reached via the sidebar's logo/brand link, the same pattern most
+// products use for "home", so the five items below stay exactly what the
+// handoff asks for. Findings/Recommendations/Reports/Knowledge Gaps still
+// exist as real routes, linked from within Insights rather than listed at
+// the top level.
 export interface NavigationItem {
 	name: string;
 	href: string;
-	icon: typeof LayoutDashboard;
+	icon: typeof Inbox;
 }
 
-export interface NavigationGroup {
-	/** Null renders with no section label -- used for the single trailing Settings item. */
-	label: string | null;
-	items: NavigationItem[];
-}
-
-export const navigationGroups: NavigationGroup[] = [
-	{
-		label: 'Customer Operations',
-		items: [
-			{ name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-			{ name: 'Conversations', href: '/dashboard/conversations', icon: MessageCircle },
-			{ name: 'Support Inbox', href: '/dashboard/support', icon: Inbox },
-		],
-	},
-	{
-		label: 'Intelligence',
-		items: [
-			{ name: 'Findings', href: '/findings', icon: AlertTriangle },
-			{ name: 'Recommendations', href: '/recommendations', icon: ClipboardList },
-			{ name: 'Reports', href: '/reports', icon: FileText },
-			{ name: 'Knowledge Gaps', href: '/dashboard/knowledge-gaps', icon: BookOpen },
-		],
-	},
-	{
-		label: null,
-		items: [{ name: 'Settings', href: '/dashboard/settings', icon: Settings }],
-	},
+export const navigation: NavigationItem[] = [
+	{ name: 'Inbox', href: '/dashboard/inbox', icon: Inbox },
+	{ name: 'Customers', href: '/dashboard/customers', icon: Users },
+	{ name: 'AI Assistant', href: '/dashboard/assistant', icon: Bot },
+	{ name: 'Insights', href: '/dashboard/insights', icon: ListChecks },
+	{ name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
-
-/** Flat form, kept for anything that just needs "is this href in the nav" without caring about grouping. */
-export const navigation: NavigationItem[] = navigationGroups.flatMap(group => group.items);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Menu } from 'lucide-react';
 
 import { Button } from '@supportos/ui/components/button';
@@ -36,13 +37,15 @@ export function MobileSidebar() {
 				className="flex flex-col border-r border-white/10 bg-card p-0"
 			>
 				<SheetHeader className="border-b px-6 py-5">
-					<SheetTitle className="font-heading text-lg">
-						SupportOS Sentinel
-					</SheetTitle>
+					<Link href="/dashboard" onClick={() => setOpen(false)} className="block">
+						<SheetTitle className="font-heading text-lg">
+							SupportOS
+						</SheetTitle>
 
-					<p className="text-xs text-muted-foreground">
-						Find recurring issues. Improve support.
-					</p>
+						<p className="text-xs text-muted-foreground">
+							AI customer operations platform
+						</p>
+					</Link>
 				</SheetHeader>
 
 				<SidebarNav onNavigate={() => setOpen(false)} />

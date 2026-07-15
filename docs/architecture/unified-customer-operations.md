@@ -1,5 +1,15 @@
 # Unified Customer Operations Architecture Audit (Phase 21A)
 
+> **Superseded by `docs/architecture/platform-audit.md`.** A later, more
+> detailed Phase 21 handoff arrived in the same working session with its
+> own audit checklist (ticket/conversation/message/customer UI; Chat Agent
+> widgets/API routes/components/AI integration; Sentinel dashboard/
+> intelligence/reports/recommendations) and its own target navigation.
+> `platform-audit.md` is the current source of truth; this document is
+> kept because its findings still hold and its framing ("connect the
+> customer journey, not the codebase") is still the right mental model --
+> just read the newer file first.
+
 Required reading before any Phase 21 code changes. This document is the
 factual record of what actually exists today -- not what the Phase 21
 handoff assumes exists. Per the handoff's guiding principle ("connect the
