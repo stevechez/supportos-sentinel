@@ -74,6 +74,7 @@ export default async function FounderDashboardPage() {
 									<th className="px-4 py-3 font-medium">Insights</th>
 									<th className="px-4 py-3 font-medium">Last activity</th>
 									<th className="px-4 py-3 font-medium">Feedback</th>
+									<th className="px-4 py-3 font-medium">Health</th>
 								</tr>
 							</thead>
 							<tbody className="divide-y">
@@ -105,6 +106,9 @@ export default async function FounderDashboardPage() {
 											{row.feedbackCount === 0
 												? '--'
 												: `${row.feedbackCount} total${row.openFeedbackCount > 0 ? ` (${row.openFeedbackCount} open)` : ''}`}
+										</td>
+										<td className="px-4 py-3">
+											<HealthBadge score={row.latestHealthScore} />
 										</td>
 									</tr>
 								))}
@@ -152,6 +156,30 @@ function SummaryCard({ label, value, hint }: { label: string; value: string; hin
 			<p className="mt-2 font-heading text-2xl text-foreground">{value}</p>
 			{hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
 		</div>
+	);
+}
+
+// Phase 22C -- "customer health" at a glance. Same score/threshold the
+// customer sees on their own Insights page (health-score-card.tsx uses the
+// same rough bands); this just makes it scannable across many
+// organizations at once, which a single customer's own dashboard has no
+// reason to do.
+function HealthBadge({ score }: { score: number | null }) {
+	if (score === null) {
+		return <span className="text-xs text-muted-foreground">--</span>;
+	}
+
+	const style =
+		score >= 70
+			? 'bg-emerald-400/10 text-emerald-400'
+			: score >= 40
+				? 'bg-amber-400/10 text-amber-400'
+				: 'bg-destructive/10 text-destructive';
+
+	return (
+		<span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${style}`}>
+			{Math.round(score)}
+		</span>
 	);
 }
 

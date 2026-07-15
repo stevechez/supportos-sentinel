@@ -24,10 +24,10 @@ const siteUrl = env.appUrl;
 export const metadata: Metadata = {
 	metadataBase: new URL(siteUrl),
 	title: {
-		default: 'Sentinel',
+		default: 'SupportOS',
 		template: '%s',
 	},
-	description: 'AI Business Platform',
+	description: 'AI customer operations platform',
 	icons: {
 		icon: '/favicon.ico',
 	},

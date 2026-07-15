@@ -62,3 +62,38 @@ but not yet evidence of anything. This becomes real the moment three or
 more real pilots are running. Documented here so the definition and the
 measurement code are validated in advance of having data worth measuring,
 not built reactively once someone asks for it.
+
+## Phase 22B addendum: the AI Assistant and retention signal
+
+Phase 21D added a second real path into the product -- the AI Assistant
+(`/dashboard/assistant`) -- that creates a real ticket and conversation
+without a source ever being connected. `docs/product/customer-journey-v2.md`
+(Phase 22A) audits this path in detail; the summary for measurement
+purposes:
+
+- **The activation definition does not change.** `created_baseline_report`
+  remains the activation event. Asking the Assistant a single question does
+  not reliably produce an insight (pattern detection requires the same
+  question to recur `MIN_RECURRENCE = 3` times -- `src/lib/signals/patterns.ts`),
+  so counting it as activation would count engagement that hasn't reached
+  value yet, exactly the vanity-metric mistake Phase 18C's definition was
+  written to avoid.
+- **It is now visible in the funnel as an engagement signal, not an
+  activation signal.** `asked_assistant` is logged to `activity_log`
+  (`src/lib/assistant/actions.ts`, added this phase) the same way
+  `signed_up` / `connected_source` / `synced_signals` /
+  `created_baseline_report` already are. A founder reviewing the pilot
+  dashboard can now see that an organization engaged via the Assistant even
+  if it never connected a source -- previously this was invisible.
+- **Retention signal.** Rather than building new retention infrastructure,
+  "did this organization return" is answered the same way it already is
+  for everything else on the founder dashboard: `lastActivityAt`, the most
+  recent row across all `activity_log` actions for that organization
+  (`getFounderPilotOverview()`, unchanged this phase). An organization whose
+  only activity is a single `asked_assistant` row and nothing since is a
+  visible, honest signal that engagement didn't continue -- no new "streak"
+  or "days active" metric was added, because none is needed to see that.
+
+No new table, no new query path, no new activation event -- one new
+`ActivityAction` variant feeding the existing funnel and existing
+`lastActivityAt` field.

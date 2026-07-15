@@ -5,6 +5,7 @@ import { createClient } from '@supportos/auth/server';
 import { getCurrentMembership } from '@/lib/dashboard/dashboard';
 import { generateCustomerAnswer } from '@/lib/ai/analyst';
 import { AiUnavailableError } from '@/lib/ai/types';
+import { logActivity } from '@/lib/activity';
 
 // Phase 21D -- the AI Assistant's minimal real loop:
 //
@@ -154,6 +155,18 @@ export async function askAssistantAction(
 			})
 			.eq('id', ticket.id)
 			.eq('organization_id', membership.organizationId);
+
+		// Phase 22B: the AI Assistant is a second real path to activation
+		// data, alongside connecting a source -- log it the same way
+		// signed_up/synced_signals already are, so the existing activity_log
+		// funnel (docs/product/activation-funnel.md) can see it too.
+		await logActivity(supabase, {
+			organizationId: membership.organizationId,
+			memberId: membership.memberId,
+			action: 'asked_assistant',
+			entityType: 'ticket',
+			entityId: ticket.id,
+		});
 
 		return { ok: true, answer, ticketId: ticket.id };
 	} catch (error) {

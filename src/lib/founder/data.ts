@@ -32,6 +32,8 @@ export interface FounderPilotRow {
 	lastActivityAt: string | null;
 	feedbackCount: number;
 	openFeedbackCount: number;
+	/** Phase 22C -- "customer health," the health_score from the organization's most recent sentinel_reports row. Null until they have one. Same score the customer sees on their own Insights page -- not a separate founder-side metric. */
+	latestHealthScore: number | null;
 }
 
 export interface FounderSummary {
@@ -72,7 +74,10 @@ export async function getFounderPilotOverview(): Promise<FounderPilotRow[]> {
 				.order('created_at', { ascending: false }),
 			supabase.from('members').select('organization_id'),
 			supabase.from('sentinel_connections').select('organization_id, status'),
-			supabase.from('sentinel_reports').select('organization_id, created_at').order('created_at', { ascending: true }),
+			supabase
+			.from('sentinel_reports')
+			.select('organization_id, created_at, health_score')
+			.order('created_at', { ascending: true }),
 			supabase.from('activity_log').select('organization_id, created_at').order('created_at', { ascending: false }),
 			supabase.from('customer_feedback').select('organization_id, status'),
 		]);
@@ -91,6 +96,16 @@ export async function getFounderPilotOverview(): Promise<FounderPilotRow[]> {
 		// case rather than widening every downstream type to handle it.
 		if (row.created_at && !firstReportAt.has(row.organization_id)) {
 			firstReportAt.set(row.organization_id, row.created_at);
+		}
+	}
+	const latestHealthScore = new Map<string, number>();
+	for (const row of reports ?? []) {
+		// Rows are ordered oldest-first, so overwriting on every row leaves
+		// each organization's *most recent* score once the loop finishes --
+		// deliberately the opposite accumulation direction from firstReportAt
+		// below, which keeps only the first value seen.
+		if (row.health_score !== null) {
+			latestHealthScore.set(row.organization_id, Number(row.health_score));
 		}
 	}
 	const lastActivity = new Map<string, string>();
@@ -121,6 +136,7 @@ export async function getFounderPilotOverview(): Promise<FounderPilotRow[]> {
 		lastActivityAt: lastActivity.get(org.id) ?? null,
 		feedbackCount: feedbackCounts.get(org.id) ?? 0,
 		openFeedbackCount: openFeedbackCounts.get(org.id) ?? 0,
+		latestHealthScore: latestHealthScore.get(org.id) ?? null,
 	}));
 }
 

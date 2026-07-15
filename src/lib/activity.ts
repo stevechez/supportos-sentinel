@@ -43,7 +43,8 @@ export type ActivityAction =
 	| 'created_finding_from_pattern'
 	| 'updated_finding_status'
 	| 'updated_recommendation_status'
-	| 'submitted_feedback';
+	| 'submitted_feedback'
+	| 'asked_assistant';
 
 export interface LogActivityInput {
 	organizationId: string;
@@ -158,6 +159,8 @@ export function describeActivity(entry: ActivityEntry): string {
 		}
 		case 'submitted_feedback':
 			return `${who} sent feedback`;
+		case 'asked_assistant':
+			return `${who} asked the AI Assistant a question`;
 		default:
 			return `${who} performed an action`;
 	}
