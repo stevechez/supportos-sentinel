@@ -15,6 +15,19 @@ export type FeedbackPriority = 'low' | 'normal' | 'high';
 
 export type FeedbackStatus = 'new' | 'reviewed' | 'resolved';
 
+// Phase 20D -- founder-side triage categories, set after reading feedback
+// (never collected from the customer). Nullable: most feedback starts
+// undecided.
+export type FeedbackDecision = 'build' | 'fix' | 'document' | 'ignore' | 'investigate';
+
+export const FEEDBACK_DECISION_LABELS: Record<FeedbackDecision, string> = {
+	build: 'Build',
+	fix: 'Fix',
+	document: 'Document',
+	ignore: 'Ignore',
+	investigate: 'Investigate',
+};
+
 export interface FeedbackEntry {
 	id: string;
 	memberName: string | null;
@@ -23,5 +36,7 @@ export interface FeedbackEntry {
 	context: string | null;
 	priority: FeedbackPriority;
 	status: FeedbackStatus;
+	decision: FeedbackDecision | null;
+	decisionNotes: string | null;
 	createdAt: string;
 }

@@ -451,6 +451,8 @@ export type Database = {
 				Row: {
 					context: string | null;
 					created_at: string;
+					decision: string | null;
+					decision_notes: string | null;
 					feedback_type: string;
 					id: string;
 					member_id: string | null;
@@ -462,6 +464,8 @@ export type Database = {
 				Insert: {
 					context?: string | null;
 					created_at?: string;
+					decision?: string | null;
+					decision_notes?: string | null;
 					feedback_type: string;
 					id?: string;
 					member_id?: string | null;
@@ -473,6 +477,8 @@ export type Database = {
 				Update: {
 					context?: string | null;
 					created_at?: string;
+					decision?: string | null;
+					decision_notes?: string | null;
 					feedback_type?: string;
 					id?: string;
 					member_id?: string | null;
@@ -1069,6 +1075,10 @@ export type Database = {
 					id: string;
 					logo_url: string | null;
 					name: string;
+					pilot_started_at: string | null;
+					pilot_status: string;
+					primary_contact_email: string | null;
+					primary_contact_name: string | null;
 					slug: string;
 					stripe_customer_id: string | null;
 					stripe_subscription_id: string | null;
@@ -1079,6 +1089,10 @@ export type Database = {
 					id?: string;
 					logo_url?: string | null;
 					name: string;
+					pilot_started_at?: string | null;
+					pilot_status?: string;
+					primary_contact_email?: string | null;
+					primary_contact_name?: string | null;
 					slug: string;
 					stripe_customer_id?: string | null;
 					stripe_subscription_id?: string | null;
@@ -1089,6 +1103,10 @@ export type Database = {
 					id?: string;
 					logo_url?: string | null;
 					name?: string;
+					pilot_started_at?: string | null;
+					pilot_status?: string;
+					primary_contact_email?: string | null;
+					primary_contact_name?: string | null;
 					slug?: string;
 					stripe_customer_id?: string | null;
 					stripe_subscription_id?: string | null;
