@@ -1,9 +1,10 @@
-import { AlertTriangle, Info, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Info, ShieldCheck, MessagesSquare } from 'lucide-react';
 
 import { Container } from '@/components/marketing/container';
 import { EmptyState } from '@/components/dashboard/empty-state';
-import { getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
+import { getCurrentMembership, getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
 import type { Finding } from '@/lib/dashboard/dashboard';
+import { getFindingProvenance, type FindingProvenance } from '@/lib/signals/provenance';
 
 function severityIcon(severity: Finding['severity']) {
 	if (severity === 'Critical' || severity === 'High') {
@@ -13,8 +14,16 @@ function severityIcon(severity: Finding['severity']) {
 }
 
 export default async function FindingsPage() {
-	const data = await getExecutiveDashboardData();
+	const [data, membership] = await Promise.all([getExecutiveDashboardData(), getCurrentMembership()]);
 	const findings = data?.findings ?? [];
+
+	// Phase 21E: provenance answers "where did this come from" for every
+	// finding shown below -- which real conversations produced the signals
+	// that became this finding. Batch-loaded once for the whole list rather
+	// than per-row, same pattern as everything else on this page.
+	const provenance: Map<string, FindingProvenance> = membership
+		? await getFindingProvenance(membership.organizationId, findings.map(f => f.id))
+		: new Map();
 
 	return (
 		<section className="py-10">
@@ -46,6 +55,7 @@ export default async function FindingsPage() {
 					<div className="mt-10 space-y-5">
 						{findings.map(finding => {
 							const Icon = severityIcon(finding.severity);
+							const source = provenance.get(finding.id);
 
 							return (
 								<div
@@ -75,6 +85,27 @@ export default async function FindingsPage() {
 											<p className="mt-4 text-xs font-medium uppercase tracking-wide text-brand">
 												{finding.isTopPriority ? 'Needs attention' : 'Monitoring'}
 											</p>
+
+											{source && source.tickets.length > 0 && (
+												<div className="mt-4 border-t pt-4">
+													<p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+														<MessagesSquare className="h-3.5 w-3.5" aria-hidden="true" />
+														Where this came from
+													</p>
+
+													<p className="mt-1.5 text-xs text-muted-foreground">
+														Built from {source.signalCount} signal{source.signalCount === 1 ? '' : 's'} across these conversations:
+													</p>
+
+													<ul className="mt-2 space-y-1">
+														{source.tickets.map(ticket => (
+															<li key={ticket.id} className="text-sm text-foreground">
+																&ldquo;{ticket.subject}&rdquo;
+															</li>
+														))}
+													</ul>
+												</div>
+											)}
 										</div>
 									</div>
 								</div>

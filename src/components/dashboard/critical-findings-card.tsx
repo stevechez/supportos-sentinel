@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, ArrowRight, CheckCircle2, Clock3, ShieldCheck, Star } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CheckCircle2, Clock3, MessagesSquare, ShieldCheck, Star } from 'lucide-react';
 
 import { EmptyState } from './empty-state';
 import {
@@ -18,16 +18,19 @@ import { RelatedHistory } from './related-history';
 import { updateFindingStatusAction } from '@/lib/dashboard/actions';
 import { FINDING_STATUS_LABELS, FINDING_STATUS_ORDER } from '@/lib/dashboard/improvement';
 import type { Finding, ImprovementEvent, Recommendation } from '@/lib/dashboard/dashboard';
+import type { FindingProvenance } from '@/lib/signals/provenance';
 
 interface CriticalFindingsCardProps {
 	findings: Finding[];
 	recommendations: Recommendation[];
 	improvementEvents: ImprovementEvent[];
+	/** Phase 21E: which real conversations produced each finding, keyed by finding id. Optional so this card still works anywhere it's rendered without provenance loaded. */
+	provenance?: Map<string, FindingProvenance>;
 }
 
 const INLINE_LIMIT = 3;
 
-export function CriticalFindingsCard({ findings, recommendations, improvementEvents }: CriticalFindingsCardProps) {
+export function CriticalFindingsCard({ findings, recommendations, improvementEvents, provenance }: CriticalFindingsCardProps) {
 	const [open, setOpen] = useState(false);
 	const visible = findings.slice(0, INLINE_LIMIT);
 	const remaining = findings.length - visible.length;
@@ -65,6 +68,7 @@ export function CriticalFindingsCard({ findings, recommendations, improvementEve
 								finding={finding}
 								recommendations={recommendations}
 								improvementEvents={improvementEvents}
+								source={provenance?.get(finding.id)}
 							/>
 						))}
 					</div>
@@ -98,6 +102,7 @@ export function CriticalFindingsCard({ findings, recommendations, improvementEve
 								finding={finding}
 								recommendations={recommendations}
 								improvementEvents={improvementEvents}
+								source={provenance?.get(finding.id)}
 								detailed
 							/>
 						))}
@@ -112,11 +117,13 @@ function FindingRow({
 	finding,
 	recommendations,
 	improvementEvents,
+	source,
 	detailed = false,
 }: {
 	finding: Finding;
 	recommendations: Recommendation[];
 	improvementEvents: ImprovementEvent[];
+	source?: FindingProvenance;
 	detailed?: boolean;
 }) {
 	const linkedRecommendation = recommendations.find(r => r.findingId === finding.id);
@@ -161,6 +168,22 @@ function FindingRow({
 									<DetailRow label="Recommendation">{linkedRecommendation.title}</DetailRow>
 									<DetailRow label="Expected impact">{linkedRecommendation.impact}</DetailRow>
 								</>
+							)}
+
+							{source && source.tickets.length > 0 && (
+								<DetailRow label="Where this came from">
+									<div className="space-y-1">
+										<p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+											<MessagesSquare className="h-3.5 w-3.5" aria-hidden="true" />
+											{source.signalCount} signal{source.signalCount === 1 ? '' : 's'} from these conversations:
+										</p>
+										<ul className="space-y-0.5">
+											{source.tickets.map(ticket => (
+												<li key={ticket.id}>&ldquo;{ticket.subject}&rdquo;</li>
+											))}
+										</ul>
+									</div>
+								</DetailRow>
 							)}
 
 							<RelatedHistory candidateTitle={finding.title} events={improvementEvents} />

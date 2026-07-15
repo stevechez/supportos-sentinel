@@ -16,25 +16,28 @@ import { OnboardingBanner } from '@/components/dashboard/onboarding-banner';
 import { FirstInsightCard } from '@/components/dashboard/first-insight-card';
 import { CustomerConversationsCard } from '@/components/dashboard/customer-conversations-card';
 import { EmergingRisksCard } from '@/components/dashboard/emerging-risks-card';
+import { ExecutiveOperationsCard } from '@/components/dashboard/executive-operations-card';
 import { EmptyState } from '@/components/dashboard/empty-state';
 import { SectionHeading } from '@/components/dashboard/section-heading';
 
 import { Activity, AlertTriangle, Building2, ClipboardList } from 'lucide-react';
 
-import { getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
+import { getCurrentMembership, getExecutiveDashboardData } from '@/lib/dashboard/dashboard';
 import { getSignalsOverview, getConnectedSourcesOverview, getResolutionOverview } from '@/lib/signals/data';
 import { buildConversationSummary } from '@/lib/signals/conversations';
 import { buildFirstInsightSummary } from '@/lib/signals/insight';
 import { buildEmergingRisks } from '@/lib/signals/risks';
 import { buildResolutionMetrics } from '@/lib/signals/resolution';
 import { detectEmergingTrends } from '@/lib/signals/trends';
+import { getFindingProvenance } from '@/lib/signals/provenance';
 
 export default async function DashboardPage() {
-	const [data, signalsOverview, connectedSources, resolutionOverview] = await Promise.all([
+	const [data, signalsOverview, connectedSources, resolutionOverview, membership] = await Promise.all([
 		getExecutiveDashboardData(),
 		getSignalsOverview(),
 		getConnectedSourcesOverview(),
 		getResolutionOverview(),
+		getCurrentMembership(),
 	]);
 
 	if (!data) {
@@ -71,6 +74,12 @@ export default async function DashboardPage() {
 
 	const signals = signalsOverview?.signals ?? [];
 	const patterns = signalsOverview?.patterns ?? [];
+
+	// Phase 21E: provenance for the Critical Findings sheet -- which real
+	// conversations produced each finding shown below.
+	const provenance = membership
+		? await getFindingProvenance(membership.organizationId, findings.map(f => f.id))
+		: undefined;
 	// Phase 14: Signals -> trend engine -> EmergingRisk. Deterministic, no AI --
 	// computed fresh on every render from the same signals/improvementEvents
 	// already loaded for the rest of the page, never a separate fetch.
@@ -110,6 +119,27 @@ export default async function DashboardPage() {
 				{showFirstInsight && <FirstInsightCard summary={buildFirstInsightSummary(signals, patterns)} />}
 
 				{/*
+					Phase 21F: one calm, non-chart summary above everything else --
+					the "wow moment" that connects AI-handled conversations,
+					escalations, detected patterns, recommended improvements, and
+					overall health into a single unified picture before the
+					question-by-question breakdown below. Every number is already
+					computed for the sections that follow; this composes them, it
+					doesn't add new computation.
+				*/}
+				{!showFirstInsight && (
+					<ExecutiveOperationsCard
+						summary={{
+							aiHandledCount: resolutionOverview?.metrics.aiResolvedCount ?? 0,
+							escalatedCount: resolutionOverview?.metrics.humanEscalatedCount ?? 0,
+							patternsDetected: patterns.length,
+							recommendedImprovements: counts.recommendedActions,
+							healthScore: healthScore.score,
+						}}
+					/>
+				)}
+
+				{/*
 					Phase 13A: five priority sections, each answering one question an
 					executive actually asks, in the order they'd ask it. Same
 					components and data as before -- this is hierarchy and framing,
@@ -142,6 +172,7 @@ export default async function DashboardPage() {
 						findings={findings}
 						recommendations={recommendations}
 						improvementEvents={improvementEvents}
+						provenance={provenance}
 					/>
 				</section>
 
