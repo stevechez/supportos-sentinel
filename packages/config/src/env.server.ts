@@ -37,4 +37,15 @@ export const serverEnv = {
 	// task over a handful of already-computed numbers, not open-ended
 	// reasoning, so the cheapest/fastest current model is the right default.
 	anthropicModel: process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001',
+	// Phase 19C -- the founder dashboard (a cross-organization pilot view)
+	// is gated by this allowlist rather than any role in the member_role
+	// hierarchy, because member_role is org-scoped by design (Phase 16C)
+	// and this page deliberately needs to see across organizations. Empty
+	// by default, so the page is unreachable until explicitly configured --
+	// no one gets cross-tenant visibility by accident. Comma-separated
+	// emails, case-insensitive.
+	founderEmails: (process.env.FOUNDER_EMAILS ?? '')
+		.split(',')
+		.map(email => email.trim().toLowerCase())
+		.filter(Boolean),
 };
