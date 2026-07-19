@@ -78,15 +78,17 @@ async function ensureWorkspace(
 			.eq('organization_id', organizationId)
 			.maybeSingle();
 
-		const { error: activityError } = await supabase.from('activity_log').insert({
-			organization_id: organizationId,
-			member_id: newMembership?.id ?? null,
-			actor_type: newMembership?.id ? 'member' : 'system',
-			action: 'signed_up',
-			entity_type: 'organization',
-			entity_id: organizationId,
-			metadata: {},
-		});
+		const { error: activityError } = await supabase
+			.from('activity_log')
+			.insert({
+				organization_id: organizationId,
+				member_id: newMembership?.id ?? null,
+				actor_type: newMembership?.id ? 'member' : 'system',
+				action: 'signed_up',
+				entity_type: 'organization',
+				entity_id: organizationId,
+				metadata: {},
+			});
 
 		if (activityError) {
 			console.error('[activity] logging signed_up:', activityError);
@@ -111,7 +113,9 @@ async function ensureWorkspace(
 			line_items: [{ price: priceId, quantity: 1 }],
 			success_url: `${siteUrl}/dashboard?checkout=success`,
 			cancel_url: `${siteUrl}/dashboard?checkout=cancelled`,
-			metadata: organizationId ? { organization_id: organizationId } : undefined,
+			metadata: organizationId
+				? { organization_id: organizationId }
+				: undefined,
 		});
 
 		return { checkoutUrl: session.url };
@@ -123,17 +127,39 @@ async function ensureWorkspace(
 	}
 }
 
-export async function signup(formData: FormData) {
+// Phase 22 fix -- `signup` used to signal every non-success outcome by
+// either `throw`ing a raw Error or `redirect()`-ing back to this same route
+// with an `?error=` query param, while being bound directly to
+// `<form action={signup}>`. A Server Action invoked that way has no error
+// boundary around it: an uncaught throw (the duplicate-email and
+// Supabase-error branches below) surfaces to the browser as a generic
+// "An unexpected response was received from the server" runtime error
+// instead of the actual message -- that's the bug this phase fixes, not a
+// Supabase or workspace-creation problem (both were already confirmed
+// working). Converted to the `useActionState` pattern the App Router
+// documents for exactly this case: every non-fatal outcome returns
+// `{ error }` for the client (`SignupForm`, a client component) to render
+// inline, with no page navigation and nothing thrown. `redirect()` is kept
+// for the two genuine navigations -- email confirmation required, and full
+// success -- exactly as the rest of this file already does for `login`.
+export interface SignupState {
+	error?: string;
+}
+
+export async function signup(
+	_prevState: SignupState,
+	formData: FormData,
+): Promise<SignupState> {
 	const business = String(formData.get('business') ?? '').trim();
 	const email = String(formData.get('email') ?? '').trim();
 	const password = String(formData.get('password') ?? '');
 
 	if (!business || !email || !password) {
-		redirect('/signup?error=Please+fill+in+every+field');
+		return { error: 'Please fill in every field.' };
 	}
 
 	if (password.length < 8) {
-		redirect('/signup?error=Password+must+be+at+least+8+characters');
+		return { error: 'Password must be at least 8 characters.' };
 	}
 
 	const supabase = await createClient();
@@ -147,7 +173,7 @@ export async function signup(formData: FormData) {
 	});
 
 	if (error) {
-		redirect(`/signup?error=${encodeURIComponent(error.message)}`);
+		return { error: error.message };
 	}
 
 	// Supabase doesn't return an error for a duplicate signup (to avoid
@@ -155,20 +181,18 @@ export async function signup(formData: FormData) {
 	// an empty `identities` array. Surface that clearly instead of silently
 	// showing "check your email" for an email that will never get one.
 	if (data.user && data.user.identities && data.user.identities.length === 0) {
-		redirect(
-			'/signup?error=' +
-				encodeURIComponent(
-					'An account with this email already exists. Log in instead, or use "Resend confirmation email" if you never confirmed it.',
-				),
-		);
+		return {
+			error:
+				'An account with this email already exists. Log in instead, or use "Resend confirmation email" if you never confirmed it.',
+		};
 	}
 
 	// If email confirmation is required, there's no session yet — the
-	// workspace gets created the first time they actually log in.
+	// workspace gets created the first time they actually log in. This is a
+	// real navigation (a distinct "check your email" view), not an error, so
+	// it stays a redirect.
 	if (!data.session || !data.user) {
-		redirect(
-			`/signup?message=check-email&email=${encodeURIComponent(email)}`,
-		);
+		redirect(`/signup?message=check-email&email=${encodeURIComponent(email)}`);
 	}
 
 	let checkoutUrl: string | null = null;
@@ -182,9 +206,11 @@ export async function signup(formData: FormData) {
 		));
 	} catch (err) {
 		const message = err instanceof Error ? err.message : 'Something went wrong';
-		redirect(`/signup?error=${encodeURIComponent(message)}`);
+		return { error: message };
 	}
 
+	// redirect() throws internally to interrupt rendering, so -- same rule
+	// as login() below -- it must stay outside the try/catch above.
 	redirect(checkoutUrl ?? '/dashboard');
 }
 

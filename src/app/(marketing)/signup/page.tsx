@@ -1,8 +1,8 @@
 import Link from 'next/link';
 
 import { Container } from '@/components/marketing/container';
-import { SubmitButton } from '@/components/marketing/submit-button';
-import { signup, resendConfirmation } from '@supportos/auth/actions';
+import { SignupForm } from '@/components/marketing/signup-form';
+import { resendConfirmation } from '@supportos/auth/actions';
 
 export const metadata = {
 	title: 'Get Started | Sentinel',
@@ -90,72 +90,7 @@ export default async function SignupPage({
 						</p>
 					</div>
 
-					<form action={signup} className="mt-10 space-y-4">
-						{error ? (
-							<p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-								{error}
-							</p>
-						) : null}
-
-						<div>
-							<label
-								htmlFor="business"
-								className="mb-1.5 block text-sm font-medium text-foreground/90"
-							>
-								Business name
-							</label>
-							<input
-								id="business"
-								name="business"
-								type="text"
-								required
-								placeholder="Acme Co."
-								className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-colors focus:border-brand/50 focus:ring-2 focus:ring-brand/30"
-							/>
-						</div>
-
-						<div>
-							<label
-								htmlFor="email"
-								className="mb-1.5 block text-sm font-medium text-foreground/90"
-							>
-								Work email
-							</label>
-							<input
-								id="email"
-								name="email"
-								type="email"
-								required
-								placeholder="you@company.com"
-								className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-colors focus:border-brand/50 focus:ring-2 focus:ring-brand/30"
-							/>
-						</div>
-
-						<div>
-							<label
-								htmlFor="password"
-								className="mb-1.5 block text-sm font-medium text-foreground/90"
-							>
-								Password
-							</label>
-							<input
-								id="password"
-								name="password"
-								type="password"
-								required
-								minLength={8}
-								placeholder="••••••••"
-								className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-colors focus:border-brand/50 focus:ring-2 focus:ring-brand/30"
-							/>
-							<p className="mt-1.5 text-xs text-muted-foreground">
-								At least 8 characters.
-							</p>
-						</div>
-
-						<SubmitButton pendingLabel="Creating account…">
-							Create account
-						</SubmitButton>
-					</form>
+					<SignupForm initialError={error} />
 
 					<p className="mt-8 text-center text-sm text-muted-foreground">
 						Already have an account?{' '}
