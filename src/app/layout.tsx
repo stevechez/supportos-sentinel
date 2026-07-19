@@ -44,7 +44,11 @@ export default function RootLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<html lang="en" className={cn(heading.variable, body.variable, 'dark')}>
+		<html
+			lang="en"
+			className={cn(heading.variable, body.variable, 'dark')}
+			suppressHydrationWarning
+		>
 			<body className="bg-background font-sans text-foreground">
 				<a
 					href="#main-content"
